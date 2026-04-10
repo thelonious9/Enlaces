@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Emisiones</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    :root {
+      --color-fondo-pagina: #fcfcfc;
+      --color-fondo-form: #ffffff;
+      --color-primary: #15173D;
+      --color-primary-hover: #21255e;
+      --color-secondary: #15173D;
+      --color-secondary-hover: #21255e;
+      --color-danger: #d90000;
+      --color-danger-hover: #a10000;
+      --color-success: #15173D;
+      --color-error: #d90000;
+      --color-text: #15173D;
+      --color-border: #15173D;
+      --radius: 0px;
+      --table-zoom: 1;
+      --color-blocked-bg: #eaecf0;
+    }
+
+    /* Variables de Tema Oscuro */
+    body.dark-mode {
+      --color-fondo-pagina: #1a1a1a;
+      --color-fondo-form: #242424;
+      --color-text: #e0e0e0;
+      --color-border: #444;
+      --color-primary: #e0e0e0;
+      --color-primary-hover: #ffffff;
+      --color-secondary: #e0e0e0;
+      --color-secondary-hover: #ffffff;
+      --color-success: #e0e0e0;
+      --color-blocked-bg: #2d2d2d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      margin: 0 auto;
+      max-width: 1440px;
+      padding: 40px;
+      background: var(--color-fondo-pagina);
+      color: var(--color-text);
+      letter-spacing: -0.3px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    header {
+      border-top: 5px solid var(--color-text);
+      border-bottom: 5px solid var(--color-text);
+      padding: 24px 0;
+      margin-bottom: 32px;
+      background: transparent;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-content {
+      display: block;
+    }
+
+    .theme-toggle-btn {
+      background: transparent;
+      border: 2px solid var(--color-border);
+      color: var(--color-text);
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--color-text);
+      color: var(--color-fondo-pagina);
+      transform: scale(1.1);
+    }
+
+    .theme-toggle-btn i {
+      transition: transform 0.5s ease;
+    }
+
+    body.dark-mode .theme-toggle-btn i {
+      transform: rotate(360deg);
+    }
+
+    header h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin: 0 0 5px 0;
+      letter-spacing: -1.5px;
+      color: var(--color-text);
+    }
+
+    header h1::after {
+      content: '®';
+      font-size: 1.5rem;
+      vertical-align: super;
+      font-weight: 400;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+
+    .art-box {
+      background: var(--color-text);
+      width: 100%;
+      height: 120px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .art-circle {
+      width: 150px;
+      height: 150px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      position: absolute;
+      top: -15px;
+    }
+
+    .art-circle:nth-child(1) {
+      left: calc(50% - 225px);
+    }
+
+    .art-circle:nth-child(2) {
+      left: calc(50% - 75px);
+    }
+
+    .art-circle:nth-child(3) {
+      left: calc(50% + 75px);
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: auto 1fr auto 1fr;
+      gap: 16px 20px;
+      padding: 0;
+      background: transparent;
+    }
+
+    label {
+      font-weight: 700;
+      align-self: center;
+      font-size: 1.1rem;
+      text-transform: none;
+      letter-spacing: normal;
+      color: var(--color-text);
+      margin-bottom: 0;
+    }
+
+    .campo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+    }
+
+    .campo-titular {
+      grid-column: 2 / span 3;
+    }
+
+    .campo input[type="text"],
+    .campo input[type="date"],
+    .campo textarea {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-fondo-form);
+      color: var(--color-text);
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .campo input[type="text"]:focus,
+    .campo input[type="date"]:focus,
+    .campo textarea:focus {
+      background-color: var(--color-text);
+      color: var(--color-fondo-pagina);
+    }
+
+    .campo textarea {
+      min-height: 45px;
+      height: auto;
+      overflow-y: hidden;
+      resize: none;
+    }
+
+    .campo-actions {
+      display: flex;
+      gap: 8px;
+      padding: 0;
+    }
+
+    .btn-campo {
+      padding: 10px 14px;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--color-text);
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .btn-campo:hover {
+      background: var(--color-text);
+      color: var(--color-fondo-pagina);
+    }
+
+    /* Lock Estilo */
+    .campo input[type="checkbox"] {
+      display: none;
+    }
+
+    .lock-label {
+      cursor: pointer;
+      color: var(--color-text);
+      font-size: 1.1rem;
+      opacity: 0.3;
+      transition: all 0.2s;
+    }
+
+    .campo input[type="checkbox"]:checked+.lock-label {
+      opacity: 1;
+    }
+
+    .bloqueado {
+      background: var(--color-blocked-bg) !important;
+      opacity: 0.8;
+      cursor: not-allowed;
+      color: var(--color-text) !important;
+    }
+
+    /* Sugerencias */
+    .sugerencias {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      border: 2px solid var(--color-border);
+      background: var(--color-fondo-form);
+      color: var(--color-text);
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 100;
+      border-radius: var(--radius);
+      box-shadow: none;
+      border-top: none;
+    }
+
+    .sugerencia {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .sugerencia:hover,
+    .sugerencia.resaltado {
+      background: var(--color-text);
+      color: var(--color-fondo-pagina);
+    }
+
+    /* Botones */
+    .button-group-form {
+      grid-column: 1 / span 4;
+      display: flex;
+      gap: 14px;
+      justify-content: flex-start;
+      margin-top: 16px;
+      flex-wrap: wrap;
+      border-top: 2px solid var(--color-border);
+      padding-top: 20px;
+    }
+
+    button:not(.btn-campo) {
+      padding: 12px 18px;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--color-text);
+      background: transparent;
+      font-family: inherit;
+      font-size: 1rem;
+      letter-spacing: -0.3px;
+      transition: all 0.2s;
+      text-transform: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    button:not(.btn-campo):hover {
+      background: var(--color-text);
+      color: var(--color-fondo-pagina);
+    }
+
+    #btnBorrarTodo,
+    #btnEliminar {
+      border-color: var(--color-danger);
+      color: var(--color-danger);
+    }
+
+    #btnBorrarTodo:hover,
+    #btnEliminar:hover {
+      background: var(--color-danger);
+      color: var(--color-fondo-pagina);
+    }
+
+
+    /* Buscador */
+    .buscador-container {
+      margin: 30px 0 10px;
+      position: relative;
+    }
+
+    /* Zoom Controls */
+    .table-header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 40px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid var(--color-text);
+      padding-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .table-header-container h2 {
+      margin: 0;
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-zoom {
+      padding: 6px 10px;
+      border: 2px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text);
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 35px;
+    }
+
+    .btn-zoom:hover {
+      background: var(--color-text);
+      color: var(--color-fondo-pagina);
+    }
+
+    .zoom-display {
+      font-weight: bold;
+      min-width: 50px;
+      text-align: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    /* Tabla */
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: var(--color-text);
+      text-transform: none;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 2px solid var(--color-border);
+      background: var(--color-fondo-form);
+    }
+
+    #tablaNotas {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+      background: var(--color-fondo-form);
+      border: none;
+    }
+
+    #tablaNotas th {
+      background: var(--color-fondo-form);
+      color: var(--color-text);
+      padding: 12px 10px;
+      font-size: calc(0.85rem * var(--table-zoom));
+      text-transform: uppercase;
+      font-weight: 800;
+      border: 1px solid var(--color-border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    #tablaNotas td {
+      padding: 12px 10px;
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      font-size: calc(0.95rem * var(--table-zoom));
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #tablaNotas tr:hover td {
+      background: var(--color-text);
+      color: var(--color-fondo-pagina);
+    }
+
+    body:not(.dark-mode) #tablaNotas tr:hover td {
+      color: #fff;
+    }
+
+    #tablaNotas tr.alerta-vacio td {
+      background-color: #fff0f0;
+      color: #d90000;
+    }
+
+    .btn-accion-tabla {
+      padding: 6px 12px;
+      background: transparent;
+      border: 2px solid var(--color-border);
+      color: var(--color-text);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-accion-tabla:hover {
+      background: var(--color-text);
+      color: var(--color-fondo-pagina);
+    }
+
+    /* Action Icons Grouped */
+    .acciones-btn-group {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+    }
+
+    .btn-icon-accion {
+      background: transparent;
+      border: 1.5px solid var(--color-border);
+      color: var(--color-text);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .btn-icon-accion:hover {
+      background: var(--color-text);
+      color: var(--color-fondo-pagina);
+      transform: translateY(-2px);
+    }
+
+    .btn-icon-accion.borrar:hover {
+      background: var(--color-danger);
+      border-color: var(--color-danger);
+      color: #fff;
+    }
+
+    /* Remove old dropdown styles if any */
+    .acciones-menu, .acciones-container { display: none; }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 1024px) {
+      form {
+        grid-template-columns: auto 1fr;
+      }
+
+      .campo-titular {
+        grid-column: auto;
+      }
+
+      .button-group-form {
+        grid-column: 1 / span 2;
+      }
+    }
+
+    @media (max-width: 768px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+
+      .button-group-form {
+        grid-column: 1;
+        flex-direction: column;
+      }
+
+      label {
+        margin-bottom: -10px;
+      }
+
+      body {
+        padding: 20px;
+      }
+
+      header h1 {
+        font-size: 2.2rem;
+      }
+
+      .art-box {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+      <h1>registro de emisiones</h1>
+      <p>Ladies and gentlemen we are recording emissions</p>
+    <button type="button" class="theme-toggle-btn" id="themeToggle" title="Cambiar tema">
+      <i class="fa-solid fa-lightbulb"></i>
+    </button>
+  </header>
+  <div class="art-box">
+    <div class="art-circle"></div>
+    <div class="art-circle"></div>
+    <div class="art-circle"></div>
+  </div>
+
+  <form>
+    <label for="usuario">Usuario:</label>
+    <div class="campo">
+      <input type="text" id="usuario" name="usuario" required>
+      <div class="campo-actions">
+        <input type="checkbox" id="checkUsuario" onchange="alternarBloqueo('usuario')" tabindex="-1">
+        <label for="checkUsuario" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+    </div>
+
+    <label for="fecha">Fecha:</label>
+    <div class="campo">
+      <input type="date" id="fecha" name="fecha" required>
+      <div class="campo-actions">
+        <input type="checkbox" id="checkFecha" onchange="alternarBloqueo('fecha')" tabindex="-1">
+        <label for="checkFecha" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+    </div>
+
+    <label for="id_emision">ID:</label>
+    <div class="campo">
+      <input type="number" id="id_emision" name="id_emision" required step="1">
+      <div class="campo-actions">
+        <input type="checkbox" id="checkId_emision" onchange="alternarBloqueo('id_emision')" tabindex="-1">
+        <label for="checkId_emision" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+    </div>
+
+    <label for="medio">Medio:</label>
+    <div class="campo">
+      <input type="text" id="medio" name="medio" autocomplete="off" required>
+      <div class="campo-actions">
+        <button type="button" class="btn-campo" onclick="mostrarSugerencias('medio','sugMedio')"
+          tabindex="-1">🔽</button>
+        <input type="checkbox" id="checkMedio" onchange="alternarBloqueo('medio')" tabindex="-1">
+        <label for="checkMedio" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+      <div id="sugMedio" class="sugerencias"></div>
+    </div>
+
+
+    <label for="titular">Titular:</label>
+    <div class="campo campo-titular">
+      <textarea id="titular" name="titular" required placeholder="Ingrese el titular completo..."></textarea>
+      <div class="campo-actions">
+        <input type="checkbox" id="checkTitular" onchange="alternarBloqueo('titular')" tabindex="-1">
+        <label for="checkTitular" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+    </div>
+
+    <label for="firma">Firma:</label>
+    <div class="campo">
+      <input type="text" id="firma" name="firma" autocomplete="off">
+      <div class="campo-actions">
+        <button type="button" class="btn-campo" onclick="mostrarSugerencias('firma','sugFirma')"
+          tabindex="-1">🔽</button>
+        <input type="checkbox" id="checkFirma" onchange="alternarBloqueo('firma')" tabindex="-1">
+        <label for="checkFirma" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+      <div id="sugFirma" class="sugerencias"></div>
+    </div>
+
+    <label for="pagina">Página:</label>
+    <div class="campo">
+      <input type="text" id="pagina" name="pagina" required>
+      <div class="campo-actions">
+        <input type="checkbox" id="checkPagina" onchange="alternarBloqueo('pagina')" tabindex="-1">
+        <label for="checkPagina" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+    </div>
+
+    <label for="dependencia">Dependencia:</label>
+    <div class="campo">
+      <input type="text" id="dependencia" name="dependencia" autocomplete="off" required>
+      <div class="campo-actions">
+        <button type="button" class="btn-campo" onclick="mostrarSugerencias('dependencia','sugDep')"
+          tabindex="-1">🔽</button>
+        <input type="checkbox" id="checkDependencia" onchange="alternarBloqueo('dependencia')" tabindex="-1">
+        <label for="checkDependencia" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+      <div id="sugDep" class="sugerencias"></div>
+    </div>
+
+    <label for="organismo">Organismo:</label>
+    <div class="campo">
+      <input type="text" id="organismo" name="organismo" autocomplete="off" required>
+      <div class="campo-actions">
+        <button type="button" class="btn-campo" onclick="mostrarSugerencias('organismo','sugOrg')"
+          tabindex="-1">🔽</button>
+        <input type="checkbox" id="checkOrganismo" onchange="alternarBloqueo('organismo')" tabindex="-1">
+        <label for="checkOrganismo" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+      <div id="sugOrg" class="sugerencias"></div>
+    </div>
+
+    <label for="genero">Género:</label>
+    <div class="campo">
+      <input type="text" id="genero" name="genero" autocomplete="off" required>
+      <div class="campo-actions">
+        <button type="button" class="btn-campo" onclick="mostrarSugerencias('genero','sugGenero')"
+          tabindex="-1">🔽</button>
+        <input type="checkbox" id="checkGenero" onchange="alternarBloqueo('genero')" tabindex="-1">
+        <label for="checkGenero" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+      <div id="sugGenero" class="sugerencias"></div>
+    </div>
+
+    <label for="canal">Canal:</label>
+    <div class="campo">
+      <input type="text" id="canal" name="canal" autocomplete="off" required>
+      <div class="campo-actions">
+        <button type="button" class="btn-campo" onclick="mostrarSugerencias('canal','sugCanal')"
+          tabindex="-1">🔽</button>
+        <input type="checkbox" id="checkCanal" onchange="alternarBloqueo('canal')" tabindex="-1">
+        <label for="checkCanal" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+      <div id="sugCanal" class="sugerencias"></div>
+    </div>
+
+    <label for="tema">Tema:</label>
+    <div class="campo">
+      <input type="text" id="tema" name="tema" autocomplete="off">
+      <div class="campo-actions">
+        <button type="button" class="btn-campo" onclick="mostrarSugerencias('tema','sugTema')" tabindex="-1">🔽</button>
+        <input type="checkbox" id="checkTema" onchange="alternarBloqueo('tema')" tabindex="-1">
+        <label for="checkTema" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+      <div id="sugTema" class="sugerencias"></div>
+    </div>
+
+    <label for="estatus">Estatus:</label>
+    <div class="campo">
+      <input type="text" id="estatus" name="estatus" autocomplete="off" required>
+      <div class="campo-actions">
+        <button type="button" class="btn-campo" onclick="mostrarSugerencias('estatus','sugEstatus')"
+          tabindex="-1">🔽</button>
+        <input type="checkbox" id="checkEstatus" onchange="alternarBloqueo('estatus')" tabindex="-1">
+        <label for="checkEstatus" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+      <div id="sugEstatus" class="sugerencias"></div>
+    </div>
+
+    <label for="municipio">Municipio:</label>
+    <div class="campo">
+      <input type="text" id="municipio" name="municipio" autocomplete="off" required>
+      <div class="campo-actions">
+        <button type="button" class="btn-campo" onclick="mostrarSugerencias('municipio','sugMunicipio')"
+          tabindex="-1">🔽</button>
+        <input type="checkbox" id="checkMunicipio" onchange="alternarBloqueo('municipio')" tabindex="-1">
+        <label for="checkMunicipio" class="lock-label"><i class="fa-solid fa-lock"></i></label>
+      </div>
+      <div id="sugMunicipio" class="sugerencias"></div>
+    </div>
+
+    <div class="button-group-form">
+      <button type="submit" id="btnGuardar">
+        <i class="fa-solid fa-floppy-disk"></i> Guardar Nota
+      </button>
+
+      <button type="button" id="btnEliminar" style="display: none;" onclick="borrarNota()">
+        <i class="fa-solid fa-trash-can"></i> Borrar
+      </button>
+
+      <button type="reset" id="btnLimpiar">
+        <i class="fa-solid fa-broom"></i> Limpiar Todo
+      </button>
+
+      <button type="button" id="btnExportarNotas" onclick="exportarNotas()">
+        <i class="fa-solid fa-file-export"></i> Exportar notas
+      </button>
+
+      <button type="button" id="btnBorrarTodo" onclick="borrarTodo()">
+        <i class="fa-solid fa-trash-can"></i> Borrar Todas
+      </button>
+    </div>
+  </form>
+
+
+  <div id="erroresCarga" class="error-carga"></div>
+
+  <div class="buscador-container">
+    <input type="text" id="buscador" placeholder="Buscar en la tabla (Titular, Medio, etc.)">
+  </div>
+
+  <div class="table-header-container">
+    <h2>Emisiones registradas</h2>
+    <div class="zoom-controls">
+      <button type="button" class="btn-zoom" id="zoomOut" title="Reducir zoom">
+        <i class="fa-solid fa-magnifying-glass-minus"></i>
+      </button>
+      <div class="zoom-display" id="zoomDisplay" title="Restablecer zoom (100%)">100%</div>
+      <button type="button" class="btn-zoom" id="zoomIn" title="Aumentar zoom">
+        <i class="fa-solid fa-magnifying-glass-plus"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table id="tablaNotas">
+      <thead>
+        <tr>
+          <th data-col="id_emision">
+            <div class="sortable-header">ID <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="usuario">
+            <div class="sortable-header">Usuario <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="fecha">
+            <div class="sortable-header">Fecha <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="medio">
+            <div class="sortable-header">Medio <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="titular">
+            <div class="sortable-header">Titular <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="firma">
+            <div class="sortable-header">Firma <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="pagina">
+            <div class="sortable-header">Página <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="dependencia">
+            <div class="sortable-header">Dependencia <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="organismo">
+            <div class="sortable-header">Organismo <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="genero">
+            <div class="sortable-header">Género <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="canal">
+            <div class="sortable-header">Canal <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="tema">
+            <div class="sortable-header">Tema <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="estatus">
+            <div class="sortable-header">Estatus <span class="sort-icon"></span></div>
+          </th>
+          <th data-col="municipio">
+            <div class="sortable-header">Municipio <span class="sort-icon"></span></div>
+          </th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <br>
+
+  <script>
+    // Contenedor global para las validaciones
+    var listasParaValidar = {
+      medios: [],
+      dependencias: [],
+      generos: [],
+      estatus: [],
+      municipios: [],
+      firmas: {}
+    };
+    let notas = [];
+    let filaEnEdicion = null;
+    let nextOrdenCaptura = 1;
+
+    // ORDEN DE CAMPOS ACTUALIZADO
+    const camposDeDatos = ["id_emision", "usuario", "fecha", "medio", "titular", "firma", "pagina", "dependencia", "organismo", "genero", "canal", "tema", "estatus", "municipio"];
+
+    // 🌟 NUEVA CONSTANTE PARA MANEJAR BLOQUEO GLOBAL Y RESET 🌟
+    const CAMPOS_CON_BLOQUEO = ["id_emision", "usuario", "fecha", "medio", "titular", "firma", "pagina", "dependencia", "organismo", "genero", "canal", "tema", "estatus", "municipio"];
+
+    // 🌟 CABECERAS SIN (Opcional) 🌟
+    const encabezadosTabla = {
+      "id_emision": "ID", "usuario": "Usuario", "fecha": "Fecha", "medio": "Medio", "titular": "Titular", "firma": "Firma",
+      "pagina": "Página", "dependencia": "Dependencia", "organismo": "Organismo", "genero": "Género", "canal": "Canal",
+      "tema": "Tema", "estatus": "Estatus", "municipio": "Municipio", "acciones": "Acciones"
+    };
+
+    let ordenActual = { columna: 'ordenCaptura', direccion: 'desc' };
+
+    // RUTAS RELATIVAS (Asegúrese de que estos archivos estén en la misma carpeta)
+    const urls = {
+      dependencias: "./Dependencia.csv",
+      medios: "./Medio.csv", // Usado para la dependencia Medio -> Canal
+      generos: "./Genero.csv",
+      estatus: "./Estatus.csv",
+      temas: "./Tema.csv",
+      municipios: "./Municipio.csv",
+      firmas: "./Firma.csv" // Usado para la lista de Firmas por Medio
+    };
+
+    // ======================================================================
+    // 🟢 CONSTANTES GLOBALES (Apps Script) 🟢
+    // ======================================================================
+    // ----------------------------------------------------------------------
+
+    function findKeyCaseInsensitive(map, value) {
+      if (!value) return null;
+      const lowerValue = value.toLowerCase();
+      for (const key in map) {
+        if (key.toLowerCase() === lowerValue) {
+          return key;
+        }
+      }
+      return null;
+    }
+
+    async function cargarCSV(url) {
+      try {
+        const urlConCacheBuster = `${url}?t=${new Date().getTime()}`;
+        const res = await fetch(urlConCacheBuster);
+
+        const contentType = res.headers.get("content-type");
+        if (contentType && !contentType.includes("text/csv") && !contentType.includes("text/plain")) {
+          if (res.status === 404) {
+            throw new Error(`Archivo no encontrado. Revise la ruta: ${url}`);
+          } else {
+            throw new Error(`Contenido inesperado (${contentType}). Revise ruta: ${url}`);
+          }
+        }
+
+        const buffer = await res.arrayBuffer();
+        const decoder = new TextDecoder('utf-8');
+        const texto = decoder.decode(buffer);
+        return texto.split('\n').map(linea => linea.split(','));
+      } catch (e) {
+        document.getElementById("erroresCarga").innerText += `Error al cargar ${url}: ${e.message}\n`;
+        return [];
+      }
+    }
+
+    function limpiarFilasCSV(filas) {
+      if (!filas || filas.length === 0) return [];
+      // Elimina el BOM (Byte Order Mark) si existe en el primer campo
+      if (filas[0] && filas[0][0]) {
+        filas[0][0] = filas[0][0].replace(/^\uFEFF/, "");
+      }
+      const encabezado = filas[0] ? filas[0].map(c => (c || "").toLowerCase()).join(",") : "";
+      // Intenta detectar si hay encabezado para saltar la primera fila
+      const tieneEncabezado = encabezado.includes("dependencia") || encabezado.includes("medio") || encabezado.includes("género");
+      if (tieneEncabezado) filas = filas.slice(1);
+      // Limpia y filtra filas vacías
+      return filas.map(r => r.map(c => (c || "").replace(/<[^>]+>/g, "").trim())).filter(r => r[0]);
+    }
+
+    // Carga un mapa de dependencia (e.g., Dependencia -> Organismos, o Medio -> Firmas, o Medio -> Canales)
+    async function cargarMapa(url) {
+      const filas = limpiarFilasCSV(await cargarCSV(url));
+      const map = {};
+      filas.forEach(([clave, valor]) => {
+        if (!clave) return;
+        clave = clave.trim();
+        valor = valor ? valor.trim() : '';
+
+        map[clave] = map[clave] || new Set();
+        if (valor) map[clave].add(valor);
+      });
+      // Convierte los Sets a Arrays ordenados
+      const claves = Object.keys(map).sort((a, b) => a.localeCompare(b, 'es'));
+      const mapArrays = {};
+      claves.forEach(k => mapArrays[k] = Array.from(map[k]).sort((a, b) => a.localeCompare(b, 'es')));
+
+      return { claves, map: mapArrays };
+    }
+
+    // Carga una lista simple (e.g., Géneros, Estatus)
+    async function cargarLista(url, listaKey) {
+      const filas = limpiarFilasCSV(await cargarCSV(url));
+      const list = [];
+      filas.forEach(r => {
+        const valorPrincipal = r[0].trim();
+        if (valorPrincipal) {
+          list.push(valorPrincipal);
+          if (listaKey && listasParaValidar[listaKey]) {
+            listasParaValidar[listaKey].push(valorPrincipal);
+          }
+        }
+      });
+      return Array.from(new Set(list)).sort((a, b) => a.localeCompare(b, 'es'));
+    }
+
+    function autocompletar(idCampo, idSugerencias, lista, callback) {
+      const campo = document.getElementById(idCampo);
+      const contenedor = document.getElementById(idSugerencias);
+      campo.dataset.lista = JSON.stringify(lista);
+      let indice = -1;
+
+      campo.addEventListener("input", () => {
+        const valor = campo.value.toLowerCase().trim();
+        contenedor.innerHTML = "";
+        indice = -1;
+        if (!valor) return;
+        const sugerencias = lista.filter(item => item.toLowerCase().includes(valor));
+        sugerencias.forEach((s, i) => {
+          const div = document.createElement("div");
+          div.textContent = s;
+          div.className = "sugerencia";
+          div.dataset.index = i;
+          div.onclick = () => {
+            campo.value = s;
+            contenedor.innerHTML = "";
+            if (callback) callback(s);
+          };
+          contenedor.appendChild(div);
+        });
+      });
+
+      campo.addEventListener("keydown", e => {
+        const items = contenedor.querySelectorAll(".sugerencia");
+
+        // --- 🌟 NUEVA LÓGICA: SELECCIÓN ÚNICA CON ENTER O TAB 🌟 ---
+        if (items.length === 1 && (e.key === "Enter" || e.key === "Tab")) {
+          // Previene el comportamiento por defecto de la tecla (evita submit o movimiento inmediato de Tab)
+          e.preventDefault();
+
+          // 1. Selecciona el valor único
+          const valorSeleccionado = items[0].textContent;
+          campo.value = valorSeleccionado;
+          contenedor.innerHTML = "";
+
+          // 2. Ejecuta el callback (si existe) y dispara el blur para actualizar dependencias (Medio -> Canal/Firma)
+          if (callback) callback(valorSeleccionado);
+          campo.dispatchEvent(new Event('blur'));
+
+          // 3. Simula el movimiento de foco si fue la tecla Tab
+          if (e.key === "Tab") {
+            const form = document.querySelector('form');
+            // Solo busca inputs de texto y fecha que no estén marcados para ser saltados (tabindex="-1")
+            const focusable = Array.from(form.querySelectorAll('input[type="text"]:not([tabindex="-1"]), input[type="date"]:not([tabindex="-1"])'));
+            const index = focusable.indexOf(e.target);
+
+            // Mueve el foco al siguiente campo enfocable
+            if (index > -1 && index < focusable.length - 1) {
+              focusable[index + 1].focus();
+            } else if (index === focusable.length - 1) {
+              // Si es el último, vuelve al titular
+              document.getElementById('titular').focus();
+            }
+          }
+          return; // Termina la función aquí
+        }
+        // --- FIN LÓGICA DE SELECCIÓN ÚNICA ---
+
+        // Lógica de flechas y Enter original (si hay más de una sugerencia o si no se ha usado Enter/Tab)
+        if (items.length === 0) return;
+
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          indice = (indice + 1) % items.length;
+          resaltar(items, indice);
+          items[indice].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          indice = (indice - 1 + items.length) % items.length;
+          resaltar(items, indice);
+          items[indice].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          if (indice >= 0 && items[indice]) {
+            campo.value = items[indice].textContent;
+            contenedor.innerHTML = "";
+            if (callback) callback(campo.value);
+            // Disparar blur para actualizar dependencias
+            campo.dispatchEvent(new Event('blur'));
+          }
+        }
+      });
+
+      campo.addEventListener("focus", () => {
+        // Cierra otras sugerencias
+        document.querySelectorAll('.sugerencias').forEach(sug => {
+          if (sug.id !== idSugerencias) {
+            sug.innerHTML = "";
+          }
+        });
+      });
+
+      campo.addEventListener("blur", () => {
+        // Cierra sugerencias con un ligero retardo para permitir clics
+        setTimeout(() => {
+          if (!contenedor.contains(document.activeElement)) {
+            contenedor.innerHTML = "";
+          }
+        }, 150);
+      });
+
+      function resaltar(items, i) {
+        items.forEach(el => el.classList.remove("resaltado"));
+        items[i].classList.add("resaltado");
+      }
+    }
+
+    function mostrarSugerencias(idCampo, idSugerencias) {
+      const campo = document.getElementById(idCampo);
+      const contenedor = document.getElementById(idSugerencias);
+      // Cierra todas las sugerencias antes de abrir una
+      document.querySelectorAll('.sugerencias').forEach(sug => sug.innerHTML = "");
+
+      const lista = campo.dataset.lista ? JSON.parse(campo.dataset.lista) : [];
+      contenedor.innerHTML = "";
+      lista.forEach((s, i) => {
+        const div = document.createElement("div");
+        div.textContent = s;
+        div.className = "sugerencia";
+        div.dataset.index = i;
+        div.onclick = () => {
+          campo.value = s;
+          contenedor.innerHTML = "";
+          // Dispara blur para actualizar dependencias (si aplica)
+          document.getElementById(idCampo).dispatchEvent(new Event('blur'));
+        };
+        contenedor.appendChild(div);
+      });
+      if (lista.length > 0) {
+        contenedor.style.display = 'block';
+      }
+    }
+
+    // FUNCIÓN DE DEPENDENCIA MEDIO -> CANAL
+    function setCanalFromMedio(medioValue, map) {
+      const canalInput = document.getElementById('canal');
+      const checkCanal = document.getElementById('checkCanal');
+
+      const key = findKeyCaseInsensitive(map, medioValue);
+      let suggestedCanal = '';
+
+      if (key && map[key].length > 0) {
+        suggestedCanal = map[key][0];
+      }
+
+      if (suggestedCanal) {
+        canalInput.value = suggestedCanal;
+        localStorage.setItem('canal', suggestedCanal);
+
+        // 🌟 Automatización: Bloquear (o re-bloquear) el campo con el nuevo valor 🌟
+        checkCanal.checked = true;
+        alternarBloqueo('canal');
+      } else if (!canalInput.value) {
+        canalInput.value = '';
+        localStorage.removeItem('canal');
+      }
+    }
+    // FIN FUNCIÓN DE DEPENDENCIA
+
+    function ajustarAlturaTitular() {
+      const el = document.getElementById('titular');
+      if (el) {
+        el.style.height = 'auto';
+        el.style.height = (el.scrollHeight) + 'px';
+      }
+    }
+
+    function resetearEstadoEdicion() {
+      filaEnEdicion = null;
+      document.getElementById('btnGuardar').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar';
+      document.getElementById('btnEliminar').style.display = 'none';
+      document.querySelectorAll('#tablaNotas tbody tr').forEach(row => row.classList.remove('editando'));
+    }
+
+    function guardarNotas() {
+      renumerarNotas(); // Asegura que se guarden con numeración consecutiva
+      localStorage.setItem('notas_emisiones', JSON.stringify(notas));
+      localStorage.setItem('nextOrden_emisiones', nextOrdenCaptura);
+    }
+
+    function renumerarNotas() {
+      notas.forEach((nota, index) => {
+        nota.ordenCaptura = index + 1;
+      });
+      nextOrdenCaptura = notas.length + 1;
+    }
+
+    function borrarTodo() {
+      if (confirm("¿Estás seguro de que quieres BORRAR TODAS las notas capturadas? Esta acción es irreversible.")) {
+        notas = [];
+        nextOrdenCaptura = 1;
+        localStorage.removeItem('notas_emisiones');
+        localStorage.removeItem('nextOrden_emisiones');
+        renderizarTabla();
+        // 🌟 Asegura que todos los campos se desbloqueen antes de resetear 🌟
+        desbloquearTodosLosCampos();
+        document.querySelector("form").reset();
+        resetearEstadoEdicion();
+      }
+    }
+
+    function borrarNota(indice = null) {
+      const idx = (indice !== null) ? indice : filaEnEdicion;
+      if (idx !== null && idx >= 0 && idx < notas.length) {
+        const confirmar = confirm(`¿Eliminar nota #${notas[idx].ordenCaptura}?`);
+        if (confirmar) {
+          notas.splice(idx, 1);
+          renumerarNotas();
+          guardarNotas();
+          ordenarTabla(ordenActual.columna, true);
+          desbloquearTodosLosCampos();
+          if (filaEnEdicion === idx) {
+            document.querySelector("form").reset();
+            resetearEstadoEdicion();
+          }
+        }
+      }
+    }
+
+    function duplicarNota(notaId) {
+      const indice = notas.findIndex(n => n.ordenCaptura === notaId);
+      if (indice === -1) return;
+      const nota = notas[indice];
+
+      // Llenar el formulario con los datos de la nota
+      camposDeDatos.filter(c => c !== 'ordenCaptura').forEach(id => {
+        document.getElementById(id).value = nota[id];
+      });
+
+      // Resetear estado de edición para que se guarde como nueva nota
+      resetearEstadoEdicion();
+      
+      // Disparar eventos para cargar sugerencias dependientes
+      document.getElementById("dependencia").dispatchEvent(new Event('blur'));
+      document.getElementById("medio").dispatchEvent(new Event('blur'));
+      
+      ajustarAlturaTitular();
+      window.scrollTo(0, 0);
+      alert("Nota duplicada en el formulario. Puedes editarla y guardarla como una nueva nota.");
+    }
+
+    // Esta función sólo verifica CAMPOS OBLIGATORIOS (excluye Tema y Firma)
+    function contieneCamposVacios(nota) {
+      // Excluye 'id_emision', 'tema' y 'firma'
+      const camposARevisar = camposDeDatos.filter(c => c !== 'id_emision' && c !== 'tema' && c !== 'firma');
+      let camposFaltantes = [];
+
+      for (const campo of camposARevisar) {
+        if (!nota[campo] || (typeof nota[campo] === 'string' && nota[campo].trim() === '')) {
+          // Guarda el nombre legible de la cabecera
+          camposFaltantes.push(encabezadosTabla[campo]);
+        }
+      }
+      return camposFaltantes; // Devuelve la lista de campos faltantes
+    }
+
+    // --- FUNCIÓN DE TRUNCAMIENTO ---
+    function truncarTexto(texto, limite) {
+      if (!texto) return '';
+      if (texto.length > limite) {
+        return texto.substring(0, limite) + '...';
+      }
+      return texto;
+    }
+    const LIMITE_CARACTERES_TITULAR = 50;
+
+    function renderizarTabla() {
+      const tablaBody = document.getElementById("tablaNotas").querySelector("tbody");
+      tablaBody.innerHTML = '';
+
+      // Creamos una copia de las notas para la tabla (las notas ya están ordenadas)
+      const notasParaRenderizar = notas;
+
+      notasParaRenderizar.forEach((nota, indice) => {
+        const tr = document.createElement("tr");
+        tr.dataset.id = nota.ordenCaptura;
+
+        // 1. Verificar si faltan campos obligatorios
+        const tieneCampoObligatorioVacio = contieneCamposVacios(nota).length > 0;
+        // 2. Verificar si el campo Tema (opcional) está vacío 
+        const tieneTemaVacio = !nota.tema || nota.tema.trim() === '';
+
+        // ALERTA SI HAY CAMPOS OBLIGATORIOS O EL CAMPO TEMA VACÍOS
+        if (tieneCampoObligatorioVacio || tieneTemaVacio) {
+          tr.classList.add('alerta-vacio');
+        }
+
+        camposDeDatos.forEach(campo => {
+          const td = document.createElement("td");
+          let textoADisplay = nota[campo];
+
+          if (nota[campo]) {
+            td.title = nota[campo];
+          }
+
+          if (campo === 'titular') {
+            textoADisplay = truncarTexto(nota[campo], LIMITE_CARACTERES_TITULAR);
+          }
+
+          td.textContent = textoADisplay;
+          td.setAttribute('data-label', encabezadosTabla[campo]);
+          tr.appendChild(td);
+        });
+
+        const tdAcciones = document.createElement("td");
+        tdAcciones.setAttribute('data-label', encabezadosTabla['acciones']);
+        
+        const group = document.createElement("div");
+        group.className = "acciones-btn-group";
+
+        // Botón Editar
+        const btnEdit = document.createElement("button");
+        btnEdit.className = "btn-icon-accion";
+        btnEdit.innerHTML = "<i class='fa-solid fa-pen-to-square'></i>";
+        btnEdit.title = "Editar Nota";
+        btnEdit.onclick = () => editarNota(tr);
+
+        // Botón Duplicar
+        const btnDup = document.createElement("button");
+        btnDup.className = "btn-icon-accion";
+        btnDup.innerHTML = "<i class='fa-solid fa-copy'></i>";
+        btnDup.title = "Duplicar y Editar";
+        btnDup.onclick = () => duplicarNota(nota.ordenCaptura);
+
+        // Botón Borrar
+        const btnDel = document.createElement("button");
+        btnDel.className = "btn-icon-accion borrar";
+        btnDel.innerHTML = "<i class='fa-solid fa-trash-can'></i>";
+        btnDel.title = "Borrar Nota";
+        btnDel.onclick = () => borrarNota(indice);
+
+        group.appendChild(btnEdit);
+        group.appendChild(btnDup);
+        group.appendChild(btnDel);
+        tdAcciones.appendChild(group);
+        tr.appendChild(tdAcciones);
+
+        tablaBody.appendChild(tr);
+      });
+
+      filtrarTabla();
+    }
+
+    function cargarNotasGuardadas() {
+      const datosJSON = localStorage.getItem('notas_emisiones');
+      const ordenJSON = localStorage.getItem('nextOrden_emisiones');
+
+      if (ordenJSON && !isNaN(parseInt(ordenJSON, 10))) nextOrdenCaptura = parseInt(ordenJSON, 10);
+
+      if (datosJSON) {
+        try {
+          notas = JSON.parse(datosJSON);
+          let maxOrden = 0;
+          notas.forEach(nota => {
+            // Asegura que todas tengan ordenCaptura y actualiza el contador
+            if (nota.ordenCaptura === undefined || nota.ordenCaptura === null) {
+              nota.ordenCaptura = nextOrdenCaptura++;
+            }
+            if (nota.canal === undefined) nota.canal = '';
+            // Asegura que Página exista para notas viejas
+            if (nota.pagina === undefined) nota.pagina = '';
+
+            if (nota.ordenCaptura > maxOrden) {
+              maxOrden = nota.ordenCaptura;
+            }
+          });
+
+          // Si la nota más reciente es mayor al contador, actualiza el contador
+          if (maxOrden >= nextOrdenCaptura) {
+            nextOrdenCaptura = maxOrden + 1;
+          }
+
+          guardarNotas();
+
+          ordenarTabla(ordenActual.columna, true);
+        } catch (e) {
+          console.error("Error al cargar notas:", e);
+          notas = [];
+        }
+      } else {
+        actualizarIndicadoresOrden();
+      }
+    }
+
+    function alternarBloqueo(idCampo) {
+      const campo = document.getElementById(idCampo);
+      const checkboxId = `check${idCampo.charAt(0).toUpperCase() + idCampo.slice(1)}`;
+      const checkbox = document.getElementById(checkboxId);
+
+      campo.readOnly = checkbox.checked;
+      campo.classList.toggle("bloqueado", checkbox.checked);
+
+      localStorage.setItem(`bloqueado_${idCampo}`, checkbox.checked);
+
+      // Si el campo se bloquea, persistir su valor
+      if (checkbox.checked) {
+        localStorage.setItem(idCampo, campo.value);
+      } else {
+        // Si el campo se desbloquea, limpiamos su valor de persistencia, para que se llene al cargar
+        localStorage.removeItem(idCampo);
+      }
+    }
+
+    // ❌ ELIMINADA: La función `alternarBloqueoGlobal` fue eliminada según la solicitud del usuario.
+
+
+    /**
+     * 🌟 FUNCIÓN: Desbloquea todos los campos. Llamada desde el botón Limpiar/Borrar Todo.
+     */
+    function desbloquearTodosLosCampos() {
+      CAMPOS_CON_BLOQUEO.forEach(id => {
+        const checkId = `check${id.charAt(0).toUpperCase() + id.slice(1)}`;
+        const checkbox = document.getElementById(checkId);
+
+        // Si está marcado, lo desmarca y llama a alternarBloqueo
+        if (checkbox && checkbox.checked) {
+          checkbox.checked = false;
+          alternarBloqueo(id);
+        }
+      });
+    }
+
+
+    function editarNota(tr) {
+      const notaId = parseInt(tr.dataset.id);
+      const indice = notas.findIndex(n => n.ordenCaptura === notaId);
+      const nota = notas[indice];
+
+      if (indice === -1 || !nota) return;
+
+      camposDeDatos.filter(c => c !== 'ordenCaptura').forEach(id => {
+        document.getElementById(id).value = nota[id];
+      });
+
+      resetearEstadoEdicion();
+
+      // Disparar blur para cargar sugerencias dependientes (Organismo, Firma, Canal)
+      document.getElementById("dependencia").dispatchEvent(new Event('blur'));
+      document.getElementById("medio").dispatchEvent(new Event('blur'));
+
+      filaEnEdicion = indice;
+      document.getElementById('btnGuardar').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Actualizar Nota';
+      document.getElementById('btnEliminar').style.display = 'inline-block';
+
+      document.querySelectorAll('#tablaNotas tbody tr').forEach(row => row.classList.remove('editando'));
+      tr.classList.add('editando');
+      ajustarAlturaTitular();
+      window.scrollTo(0, 0);
+    }
+
+    function generarNombreArchivoCSV() {
+      const usuario = document.getElementById('usuario').value.trim() || 'Desconocido';
+      const usuarioLimpio = usuario.replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+      const fechaHoy = new Date().toISOString().slice(0, 10);
+      return `${usuarioLimpio}_${fechaHoy}_Emisiones.csv`;
+    }
+
+    function generarCSVContenido() {
+      // 🌟 CABECERAS EN EL ORDEN CORRECTO (SIN Opcional) 🌟
+      const cabeceras = ["ID", "Usuario", "Fecha", "Medio", "Titular", "Firma", "Página", "Dependencia", "Organismo", "Género", "Canal", "Tema", "Estatus", "Municipio"];
+      const filas = [cabeceras];
+
+      notas.forEach(nota => {
+        // 🌟 VALORES EN EL ORDEN CORRECTO 🌟
+        const fila = camposDeDatos.map(key => {
+          let valor = nota[key] || '';
+          // Envuelve el valor en comillas y duplica las comillas internas (escape CSV)
+          return `"${valor.toString().replace(/"/g, '""')}"`;
+        });
+        filas.push(fila);
+      });
+
+      // Agrega el BOM (\uFEFF) para forzar la codificación UTF-8 en Excel
+      return "\uFEFF" + filas.map(f => f.join(",")).join("\n");
+    }
+
+    function exportarCSV() {
+      if (notas.length === 0) { alert("No hay notas para exportar."); return; }
+
+      const csvContenido = generarCSVContenido();
+      const nombreArchivo = generarNombreArchivoCSV();
+
+      const blob = new Blob([csvContenido], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nombreArchivo;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ======================================================================
+    // 🌟 FUNCIÓN: EXPORTAR NOTAS (CSV + GOOGLE SHEETS) 🌟
+    // ======================================================================
+    async function exportarNotas() {
+      if (notas.length === 0) {
+        alert("No hay notas capturadas para exportar.");
+        return;
+      }
+
+      const btn = document.getElementById('btnExportarNotas');
+      const originalHTML = btn.innerHTML;
+
+      try {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
+
+        // 1. Exportación CSV (Descarga local)
+        exportarCSV();
+
+        // 2. Envío a Google Sheets (Individual para máxima compatibilidad)
+        const url = "https://script.google.com/macros/s/AKfycby4S86kCQn_-qlrRqnZXY5aCAuDkg50_YlwtkRs0NAWxyC0eNJfvJTVuRbNCV40iZtn/exec";
+        
+        const ahora = new Date();
+        const registroStr = ahora.toLocaleString('es-ES', { 
+          year: 'numeric', month: '2-digit', day: '2-digit', 
+          hour: '2-digit', minute: '2-digit', second: '2-digit' 
+        });
+
+        let total = notas.length;
+        let completados = 0;
+
+        // Proceso secuencial para no saturar y mostrar progreso real
+        for (const n of notas) {
+          const payload = {
+            "id_emision": n.id_emision,
+            "fecha": n.fecha,
+            "usuario": n.usuario,
+            "medio": n.medio,
+            "titular": n.titular,
+            "firma": n.firma,
+            "pagina": n.pagina,
+            "dependencia": n.dependencia,
+            "organismo": n.organismo,
+            "genero": n.genero,
+            "canal": n.canal,
+            "tema": n.tema,
+            "estatus": n.estatus,
+            "municipio": n.municipio,
+            "registro": registroStr
+          };
+
+          await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          }).catch(err => console.warn("Error en envío individual:", err));
+
+          completados++;
+          btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando ${completados}/${total}...`;
+        }
+
+        alert("Notas enviadas a base de datos y copia descargada");
+
+      } catch (error) {
+        console.error("Error en la exportación/envío:", error);
+        alert("Notas enviadas a base de datos y copia descargada");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    }
+    // ======================================================================
+    // ----------------------------------------------------------------------
+
+    // ----------------------------------------------------------------------
+
+
+    function ordenarTabla(columna, esInicial = false) {
+      if (!columna) return;
+      let direccion = 'asc';
+      if (ordenActual.columna === columna && !esInicial) {
+        direccion = ordenActual.direccion === 'asc' ? 'desc' : 'asc';
+      } else if (esInicial && columna === 'ordenCaptura') {
+        direccion = 'desc';
+      }
+
+      notas.sort((a, b) => {
+        const valA = a[columna] || '';
+        const valB = b[columna] || '';
+        let comparacion = 0;
+
+        if (columna === 'id_emision' || columna === 'ordenCaptura') comparacion = (valA - valB);
+        else if (columna === 'fecha') {
+          const dateA = new Date(valA + 'T00:00:00');
+          const dateB = new Date(valB + 'T00:00:00');
+          if (dateA < dateB) comparacion = -1;
+          if (dateA > dateB) comparacion = 1;
+        } else {
+          comparacion = valA.toString().localeCompare(valB.toString(), 'es', { sensitivity: 'base' });
+        }
+        return direccion === 'asc' ? comparacion : -comparacion;
+      });
+
+      ordenActual = { columna, direccion };
+      actualizarIndicadoresOrden();
+      renderizarTabla();
+    }
+
+    function actualizarIndicadoresOrden() {
+      document.querySelectorAll('#tablaNotas th[data-col]').forEach(th => {
+        const headerDiv = th.querySelector('.sortable-header');
+        const iconSpan = th.querySelector('.sort-icon');
+        const col = th.dataset.col;
+        headerDiv.classList.remove('sorted');
+        iconSpan.innerHTML = '';
+        if (col === ordenActual.columna) {
+          headerDiv.classList.add('sorted');
+          iconSpan.innerHTML = ordenActual.direccion === 'asc' ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>';
+        } else {
+          iconSpan.innerHTML = '<i class="fas fa-sort"></i>';
+        }
+      });
+    }
+
+    function filtrarTabla() {
+      const input = document.getElementById('buscador');
+      const filtro = input.value.toLowerCase().trim();
+      const filas = document.getElementById('tablaNotas').querySelectorAll('tbody tr');
+
+      if (filtro === '') {
+        filas.forEach(tr => tr.style.display = "");
+        return;
+      }
+
+      filas.forEach(tr => {
+        let encontrado = false;
+        const notaId = parseInt(tr.dataset.id);
+        const nota = notas.find(n => n.ordenCaptura === notaId);
+
+        if (!nota) {
+          tr.style.display = "none";
+          return;
+        }
+
+        for (let i = 0; i < camposDeDatos.length; i++) {
+          const colKey = camposDeDatos[i];
+          const textoCompleto = (nota[colKey] || '').toString().toLowerCase();
+
+          if (textoCompleto.includes(filtro)) {
+            encontrado = true;
+            break;
+          }
+        }
+        tr.style.display = encontrado ? "" : "none";
+      });
+    }
+
+    // --- Eventos ---
+    document.addEventListener("DOMContentLoaded", async () => {
+      let orgMap, firmaMap, medioToCanalMap;
+
+      const depData = await cargarMapa(urls.dependencias);
+      orgMap = depData.map;
+      autocompletar("dependencia", "sugDep", depData.claves, dep => {
+        autocompletar("organismo", "sugOrg", orgMap[dep] || []);
+      });
+
+      const firmaData = await cargarMapa(urls.firmas);
+      firmaMap = firmaData.map;
+      listasParaValidar.firmas = firmaMap;
+
+      // 🌟 CARGA DE DEPENDENCIA MEDIO -> CANAL 🌟
+      const canalData = await cargarMapa(urls.medios);
+      medioToCanalMap = canalData.map;
+
+      // Populate listasParaValidar
+      listasParaValidar.dependencias = depData.claves;
+      listasParaValidar.medios = canalData.claves;
+
+      // Lógica de autocompletar para Medio (usa la lista de Medios que tienen un Canal asociado)
+      autocompletar("medio", "sugMedio", canalData.claves, medio => { // 👈 Fuente de Medios: Medio.csv
+        // LLAMADA A LA DEPENDENCIA CANAL
+        setCanalFromMedio(medio, medioToCanalMap);
+
+        // LLAMADA A LA DEPENDENCIA FIRMA (Si el medio tiene firmas, las carga)
+        const firmas = firmaMap[medio] || [];
+        autocompletar("firma", "sugFirma", firmas);
+        if (firmas.length === 1) document.getElementById("firma").value = firmas[0];
+      });
+
+      // Blur events para dependencia y medio
+      document.getElementById("dependencia").addEventListener("blur", (e) => {
+        const val = e.target.value.trim();
+        const key = findKeyCaseInsensitive(orgMap, val);
+        if (key) { e.target.value = key; autocompletar("organismo", "sugOrg", orgMap[key] || []); }
+        else { e.target.value = val; autocompletar("organismo", "sugOrg", []); }
+      });
+
+      document.getElementById("medio").addEventListener("blur", (e) => {
+        const val = e.target.value.trim();
+        // Primero, busca el Medio para la Firma (usando el valor escrito)
+        const firmaKey = findKeyCaseInsensitive(firmaMap, val);
+
+        if (firmaKey) {
+          e.target.value = firmaKey;
+          // 1. DEPENDENCIA CANAL (usando el key encontrado)
+          setCanalFromMedio(firmaKey, medioToCanalMap);
+
+          // 2. DEPENDENCIA FIRMA
+          const firmas = firmaMap[firmaKey] || [];
+          autocompletar("firma", "sugFirma", firmas);
+          if (firmas.length === 1) document.getElementById("firma").value = firmas[0];
+        } else {
+          // Si no hay match con Firma, busca con Canal
+          const canalKey = findKeyCaseInsensitive(medioToCanalMap, val);
+
+          if (canalKey) {
+            e.target.value = canalKey;
+            // 1. DEPENDENCIA CANAL
+            setCanalFromMedio(canalKey, medioToCanalMap);
+
+            // 2. DEPENDENCIA FIRMA (se limpia si no hay match)
+            autocompletar("firma", "sugFirma", []);
+            document.getElementById("firma").value = '';
+          } else {
+            // Si no hay match con ninguno, usa el valor escrito, y limpia Firmas/Canal
+            e.target.value = val;
+            setCanalFromMedio(val, medioToCanalMap); // Esto limpiará el Canal si no hay match
+            autocompletar("firma", "sugFirma", []);
+          }
+        }
+      });
+
+      // Initialize dependent empty
+      autocompletar("organismo", "sugOrg", []);
+      autocompletar("firma", "sugFirma", []);
+
+      // Ajustar altura inicial del titular
+      ajustarAlturaTitular();
+      document.getElementById('titular').addEventListener('input', ajustarAlturaTitular);
+
+      // Carga de listas simples
+      const generosList = await cargarLista(urls.generos, 'generos');
+      autocompletar("genero", "sugGenero", generosList);
+      const estatusList = await cargarLista(urls.estatus, 'estatus');
+      autocompletar("estatus", "sugEstatus", estatusList);
+      const temasList = await cargarLista(urls.temas);
+      autocompletar("tema", "sugTema", temasList); // Este es el campo de la nota
+      const municipiosList = await cargarLista(urls.municipios, 'municipios');
+      autocompletar("municipio", "sugMunicipio", municipiosList);
+
+      // 🟢 SUGERENCIAS CANAL (Se genera a partir de los valores únicos del mapa Medio.csv) 🟢
+      // Se utiliza .flat() para aplanar el array de arrays de canales
+      const canalesLista = Array.from(new Set(Object.values(medioToCanalMap).flat())).sort((a, b) => a.localeCompare(b, 'es'));
+      autocompletar("canal", "sugCanal", canalesLista);
+
+      // Listener para el buscador en tiempo real
+      document.getElementById('buscador').addEventListener('input', filtrarTabla);
+
+      // Persistence & Locks
+      CAMPOS_CON_BLOQUEO.forEach(id => {
+        const campo = document.getElementById(id);
+        if (localStorage.getItem(id)) campo.value = localStorage.getItem(id);
+        campo.addEventListener("input", () => localStorage.setItem(id, campo.value));
+
+        const chk = document.getElementById(`check${id.charAt(0).toUpperCase() + id.slice(1)}`);
+        if (chk) {
+          chk.checked = localStorage.getItem(`bloqueado_${id}`) === 'true';
+          alternarBloqueo(id);
+        }
+      });
+
+      cargarNotasGuardadas();
+
+      // Cerrar menús al hacer clic fuera
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.acciones-menu.show').forEach(m => m.classList.remove('show'));
+      });
+
+      document.querySelectorAll('#tablaNotas th[data-col]').forEach(th => {
+        th.addEventListener('click', () => ordenarTabla(th.dataset.col));
+      });
+
+      document.querySelector("form").addEventListener('reset', (e) => {
+        // Detenemos el reset inicial para asegurar el desbloqueo antes de limpiar
+        e.preventDefault();
+
+        desbloquearTodosLosCampos();
+        resetearFormulario();
+        resetearEstadoEdicion();
+
+        setTimeout(() => {
+          document.getElementById('titular').focus();
+        }, 10);
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.campo')) {
+          document.querySelectorAll('.sugerencias').forEach(s => s.innerHTML = "");
+        }
+      });
+
+      // ----------------------------------------------------------------------
+      // 🌟 ATAJOS DE TECLADO 🌟
+      // ----------------------------------------------------------------------
+
+      // 1. Bloquear Enter para evitar el guardado accidental y simular Tab
+      document.addEventListener("keydown", (e) => {
+        // Verifica si la tecla es Enter y si el foco está en un input de texto
+        if (e.key === "Enter" && e.target.tagName === 'INPUT' && (e.target.type === 'text' || e.target.type === 'date')) {
+          // Se debe permitir que la lógica de autocompletado maneje el Enter (para selección múltiple o única)
+          // Si la función autocompletar no evita el default (porque hay múltiples), el foco se mueve aquí.
+          const contenedorSugerencias = e.target.parentNode.querySelector('.sugerencias');
+          const items = contenedorSugerencias ? contenedorSugerencias.querySelectorAll('.sugerencia') : [];
+
+          // Si no hay sugerencias, o si hay más de una, y se presiona Enter,
+          // impedimos el submit del formulario y simulamos el Tab.
+          if (items.length !== 1) { // Nota: El caso items.length === 1 está manejado dentro del autocompletar
+            e.preventDefault();
+
+            // Obtener todos los elementos enfocables (solo inputs de texto y fecha, excluyendo elementos con tabindex="-1")
+            const form = document.querySelector('form');
+            const focusable = Array.from(form.querySelectorAll('input[type="text"]:not([tabindex="-1"]), input[type="date"]:not([tabindex="-1"])'));
+
+            const index = focusable.indexOf(e.target);
+
+            if (index > -1 && index < focusable.length - 1) {
+              // Mueve el foco al siguiente campo
+              focusable[index + 1].focus();
+            } else if (index === focusable.length - 1) {
+              // Si es el último campo, regresa al inicio (Titular)
+              document.getElementById('titular').focus();
+            }
+          }
+        }
+      });
+
+      // 2. Activar Guardado con Ctrl + Q
+      document.addEventListener("keydown", (e) => {
+        // Verifica Ctrl (o Cmd en Mac) + Q
+        if (e.ctrlKey || e.metaKey) {
+          if (e.key.toLowerCase() === 'q') {
+            e.preventDefault(); // Evita la acción predeterminada del navegador
+            document.querySelector("form").dispatchEvent(new Event('submit'));
+          }
+        }
+      });
+
+      // 3. 🌟 ATAJO MODIFICADO: Bloqueo/Desbloqueo del campo activo con Ctrl + Shift + L 🌟
+      document.addEventListener("keydown", (e) => {
+        // Verifica Ctrl (o Cmd en Mac) + Shift + L
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+          e.preventDefault(); // Evita la acción predeterminada
+
+          const activeElement = document.activeElement;
+          const campoId = activeElement.id;
+
+          // Verifica si el campo activo es un INPUT de texto o fecha O un TEXTAREA Y si está en la lista de campos bloqueables
+          if ((activeElement.tagName === 'INPUT' && (activeElement.type === 'text' || activeElement.type === 'date') || activeElement.tagName === 'TEXTAREA') && CAMPOS_CON_BLOQUEO.includes(campoId)) {
+
+            const checkboxId = `check${campoId.charAt(0).toUpperCase() + campoId.slice(1)}`;
+            const checkbox = document.getElementById(checkboxId);
+
+            // Si el checkbox existe, alterna su estado y aplica el bloqueo/desbloqueo
+            if (checkbox) {
+              checkbox.checked = !checkbox.checked; // Alterna el estado
+              alternarBloqueo(campoId);            // Aplica el bloqueo/desbloqueo
+
+              // Vuelve a enfocar el campo para conservar el foco
+              activeElement.focus();
+            }
+          }
+        }
+      });
+
+      // 4. 🌟 ATAJO PARA DUPLICAR EL ÚLTIMO REGISTRO: Ctrl + Shift + J 🌟
+      document.addEventListener("keydown", (e) => {
+        // Verifica Ctrl (o Cmd en Mac) + Shift + J
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'j') {
+          e.preventDefault(); // Evita la acción predeterminada
+
+          // Verifica que haya al menos una nota para duplicar
+          if (notas.length === 0) {
+            alert("No hay registros para duplicar.");
+            return;
+          }
+
+          // Obtiene el último registro guardado (el de mayor ordenCaptura)
+          const ultimoRegistro = notas.reduce((max, nota) => nota.ordenCaptura > max.ordenCaptura ? nota : max, notas[0]);
+
+          // Crea una copia del registro sin el ordenCaptura
+          const registroDuplicado = { ...ultimoRegistro };
+          delete registroDuplicado.ordenCaptura;
+
+          // Carga los valores en el formulario
+          camposDeDatos.filter(c => c !== 'ordenCaptura').forEach(id => {
+            document.getElementById(id).value = registroDuplicado[id] || '';
+          });
+
+          // Resetea el estado de edición para que se guarde como nuevo registro
+          resetearEstadoEdicion();
+
+          // Disparar blur para cargar sugerencias dependientes
+          document.getElementById("dependencia").dispatchEvent(new Event('blur'));
+          document.getElementById("medio").dispatchEvent(new Event('blur'));
+
+          // Enfoca el primer campo editable
+          document.getElementById('titular').focus();
+
+          // Muestra una notificación sutil
+          console.log("Último registro duplicado y cargado en el formulario.");
+        }
+      });
+
+      // ----------------------------------------------------------------------
+      // 🌟 EFECTO DE ENCOGIMIENTO DE CABECERA AL HACER SCROLL 🌟
+      // ----------------------------------------------------------------------
+      const header = document.querySelector('header');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+          header.classList.add('shrunk');
+        } else {
+          header.classList.remove('shrunk');
+        }
+      });
+    });
+
+    document.querySelector("form").addEventListener("submit", e => {
+      e.preventDefault();
+      // --- VALIDACIÓN ESTILO EXCEL ---
+      const camposAValidar = [
+        { id: 'medio', lista: listasParaValidar.medios, nombre: 'Medio' },
+        { id: 'dependencia', lista: listasParaValidar.dependencias, nombre: 'Dependencia' },
+        { id: 'genero', lista: listasParaValidar.generos, nombre: 'Género' },
+        { id: 'estatus', lista: listasParaValidar.estatus, nombre: 'Estatus' },
+        { id: 'municipio', lista: listasParaValidar.municipios, nombre: 'Municipio' }
+      ];
+
+      for (const campo of camposAValidar) {
+        const valorInput = document.getElementById(campo.id).value.trim();
+        if (valorInput && !campo.lista.includes(valorInput)) {
+          alert(`Error: El valor "${valorInput}" en el campo ${campo.nombre} no es válido. Selecciona una opción de la lista.`);
+          document.getElementById(campo.id).focus();
+          return;
+        }
+      }
+
+      // --- VALIDACIÓN DE FIRMA (Dependiente de Medio) ---
+      const valorMedio = document.getElementById('medio').value.trim();
+      const valorFirma = document.getElementById('firma').value.trim();
+      if (valorFirma) {
+        const firmasValidas = listasParaValidar.firmas[valorMedio] || [];
+        if (!firmasValidas.includes(valorFirma)) {
+          alert(`Error: El valor "${valorFirma}" en el campo Firma no es válido para el medio "${valorMedio}". Selecciona una opción de la lista.`);
+          document.getElementById('firma').focus();
+          return;
+        }
+      }
+      // --- FIN VALIDACIÓN ---
+      const nuevaNota = {};
+
+      // 1. Recolectar datos y persistir campos bloqueados
+      camposDeDatos.filter(c => c !== 'ordenCaptura').forEach(id => {
+        const campo = document.getElementById(id);
+        if (id === 'titular') {
+          nuevaNota[id] = campo.value.replace(/\n/g, ' ').trim();
+        } else {
+          nuevaNota[id] = campo.value.trim();
+        }
+
+        if (localStorage.getItem(`bloqueado_${id}`) === 'true') {
+          // Si el campo está bloqueado, su valor ya está persistido.
+        }
+      });
+
+      // 🚨 VALIDACIÓN: No guarda si faltan campos obligatorios 
+      const camposFaltantes = contieneCamposVacios(nuevaNota);
+
+      if (camposFaltantes.length > 0) {
+        // 🚨 ALERTA CORREGIDA SIN MENCIONAR CAMPOS OPCIONALES 🚨
+        alert(`🚨 Por favor, llene los siguientes campos obligatorios: \n\n${camposFaltantes.join(', ')}`);
+        return; // Detiene el proceso de guardado/actualización
+      }
+
+      // 2. Guardar/Actualizar nota
+      if (filaEnEdicion !== null) {
+        nuevaNota.ordenCaptura = notas[filaEnEdicion].ordenCaptura;
+        notas[filaEnEdicion] = nuevaNota;
+        resetearEstadoEdicion();
+      } else {
+        nuevaNota.ordenCaptura = nextOrdenCaptura++;
+        notas.push(nuevaNota);
+      }
+      guardarNotas();
+      ordenarTabla(ordenActual.columna, true);
+
+      // 3. Limpiar campos NO bloqueados y eliminar su persistencia
+      camposDeDatos.filter(c => c !== 'ordenCaptura').forEach(id => {
+        // Si el campo NO está bloqueado (o está desbloqueado por la nueva lógica de 'alternarBloqueo'),
+        // se limpia su valor en la UI.
+        if (localStorage.getItem(`bloqueado_${id}`) !== 'true') {
+          document.getElementById(id).value = '';
+        }
+      });
+
+      // 4. Devolver el foco al campo Titular
+      document.getElementById('titular').focus();
+    });
+    // Función para desbloquear y limpiar todos los campos
+    function resetearFormulario() {
+      CAMPOS_CON_BLOQUEO.forEach(campoId => {
+        const input = document.getElementById(campoId);
+        const check = document.getElementById("check" + campoId.charAt(0).toUpperCase() + campoId.slice(1));
+
+        if (input) {
+          input.classList.remove("bloqueado");
+          input.disabled = false;
+          input.value = "";
+        }
+        if (check) {
+          check.checked = false;
+        }
+      });
+
+      // Limpia sugerencias visibles
+      document.querySelectorAll(".sugerencias").forEach(div => div.innerHTML = "");
+
+      // Reajusta altura del titular al limpiar
+      setTimeout(ajustarAlturaTitular, 10);
+    }
+
+    // --- LÓGICA DE TEMA OSCURO ---
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+
+    // Cargar tema guardado
+    const currentTheme = localStorage.getItem('theme');
+    if (currentTheme === 'dark') {
+      body.classList.add('dark-mode');
+      actualizarIconoTema(true);
+    }
+
+    themeToggle.addEventListener('click', () => {
+      body.classList.toggle('dark-mode');
+      const isDark = body.classList.contains('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      actualizarIconoTema(isDark);
+    });
+
+    function actualizarIconoTema(isDark) {
+      const icon = themeToggle.querySelector('i');
+      if (isDark) {
+        icon.classList.remove('fa-lightbulb');
+        icon.classList.add('fa-regular', 'fa-lightbulb'); // Cambiar estilo si se desea
+        themeToggle.style.boxShadow = '0 0 15px var(--color-text)';
+      } else {
+        icon.classList.remove('fa-regular');
+        icon.classList.add('fa-solid', 'fa-lightbulb');
+        themeToggle.style.boxShadow = 'none';
+      }
+    }
+    // ----------------------------
+
+    // --- LÓGICA DE ZOOM TABLA ---
+    let tableZoom = parseFloat(localStorage.getItem('tableZoom')) || 1;
+    const zoomDisplay = document.getElementById('zoomDisplay');
+    const zoomIn = document.getElementById('zoomIn');
+    const zoomOut = document.getElementById('zoomOut');
+
+    function updateZoom(newZoom) {
+      tableZoom = Math.max(0.5, Math.min(2.0, newZoom)); // Limitar entre 50% y 200%
+      document.documentElement.style.setProperty('--table-zoom', tableZoom);
+      zoomDisplay.innerText = Math.round(tableZoom * 100) + '%';
+      localStorage.setItem('tableZoom', tableZoom);
+    }
+
+    // Inicializar zoom
+    updateZoom(tableZoom);
+
+    zoomIn.addEventListener('click', () => updateZoom(tableZoom + 0.1));
+    zoomOut.addEventListener('click', () => updateZoom(tableZoom - 0.1));
+    zoomDisplay.addEventListener('click', () => updateZoom(1.0));
+    // ----------------------------
+
+  </script>
+
+  <footer>
+    Francisco Villeda &copy; 2026
+  </footer>
+</body>
+
+</html>
