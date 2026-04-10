@@ -6,9 +6,9 @@ Bienestar,Extitular
 CGCG,Titular
 CGCG,Extitular
 CGCG,CGCG
-Contraloría,Contraloría
-Contraloría,SEAH
-Contraloría,Titular
+ContralorÃ­a,ContralorÃ­a
+ContralorÃ­a,SEAH
+ContralorÃ­a,Titular
 Cultura,Cecultah
 Cultura,EMEH
 Cultura,Titular
@@ -20,16 +20,16 @@ DIFH,DIFH
 DIFH,PPNNAF
 DIFH,Junta de Asistencia
 DIFH,Titular
-DIFH,Hospital del Niño
+DIFH,Hospital del NiÃ±o
 Gobernador,Gobernador
 Gobierno,Gobierno
 Hacienda,Catastro
 Hacienda,Hacienda
 Hacienda,Titular
 Hacienda,IHDEP
-Oficialía Mayor,Oficialía Mayor
-Oficialía Mayor,Archivo
-Oficialía Mayor,Titular
+OficialÃ­a Mayor,OficialÃ­a Mayor
+OficialÃ­a Mayor,Archivo
+OficialÃ­a Mayor,Titular
 PGJEH,UECS
 PGJEH,PGJEH
 PGJEH,Fede
@@ -37,12 +37,12 @@ PGJEH,Cespimpp
 PGJEH,UEIDA
 PGJEH,Titular
 PGJEH,Extitular
-PGJEH,Fiscalía Anticorrupción
-Planeación,Citnova
-Planeación,Planeación
-Planeación,DESCTI
-Planeación,Cedspi
-Planeación,Titular
+PGJEH,FiscalÃ­a AnticorrupciÃ³n
+PlaneaciÃ³n,Citnova
+PlaneaciÃ³n,PlaneaciÃ³n
+PlaneaciÃ³n,DESCTI
+PlaneaciÃ³n,Cedspi
+PlaneaciÃ³n,Titular
 Presidencia,Presidencia
 Saderh,Saderh
 Saderh,Titular
@@ -54,7 +54,7 @@ Sedeco,Cofoin
 Sedeco,IHCE
 Sedeco,Sedeco
 Sedeco,Coinhi
-Sedeco,Fomento Económico
+Sedeco,Fomento EconÃ³mico
 Sedeco,Titular
 Segobh,IHM
 Segobh,CD Mujeres
@@ -84,7 +84,7 @@ Semot,Sitmah
 Semot,Titular
 SEPH,Inhide
 SEPH,IHEA
-SEPH,Básica
+SEPH,BÃ¡sica
 SEPH,Media superior
 SEPH,Universidades
 SEPH,CELCI
@@ -118,7 +118,7 @@ SSPH,UPC
 SSPH,C3
 SSPH,SSPH
 SSPH,Bomberos
-SSPH,Policía Violeta
+SSPH,PolicÃ­a Violeta
 SSPH,Titular
 STPSH,ICATHI
 STPSH,CCLEH
