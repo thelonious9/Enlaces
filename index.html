@@ -1404,10 +1404,34 @@
     }
 
     function generarNombreArchivoCSV() {
-      const usuario = document.getElementById('usuario').value.trim() || 'Desconocido';
-      const usuarioLimpio = usuario.replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-      const fechaHoy = new Date().toISOString().slice(0, 10);
-      return `${usuarioLimpio}_${fechaHoy}_Emisiones.csv`;
+      // Intentamos obtener el usuario del campo de texto
+      let usuario = document.getElementById('usuario').value.trim();
+      
+      // Si el campo está vacío, intentamos obtenerlo de la última nota capturada
+      if (!usuario && notas.length > 0) {
+        usuario = notas[notas.length - 1].usuario;
+      }
+      
+      usuario = usuario || 'Desconocido';
+
+      // Intentamos obtener la fecha del campo de texto
+      let fecha = document.getElementById('fecha').value;
+      
+      // Si la fecha está vacía, intentamos obtenerla de la última nota capturada
+      if (!fecha && notas.length > 0) {
+        fecha = notas[notas.length - 1].fecha;
+      }
+      
+      // Si sigue vacía, usamos la fecha de hoy
+      if (!fecha) {
+        fecha = new Date().toISOString().slice(0, 10);
+      }
+
+      // Limpiamos el nombre para que sea seguro como nombre de archivo
+      const usuarioLimpio = usuario.replace(/[\\/:*?"<>|]/g, '');
+      const nombreArchivo = `${usuarioLimpio} ${fecha}.csv`;
+
+      return nombreArchivo;
     }
 
     function generarCSVContenido() {
