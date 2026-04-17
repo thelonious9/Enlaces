@@ -508,7 +508,10 @@
     }
 
     /* Remove old dropdown styles if any */
-    .acciones-menu, .acciones-container { display: none; }
+    .acciones-menu,
+    .acciones-container {
+      display: none;
+    }
 
     /* --- RESPONSIVE --- */
     @media (max-width: 1024px) {
@@ -556,8 +559,8 @@
 
 <body>
   <header>
-      <h1>registro de emisiones</h1>
-      <p>Ladies and gentlemen we are recording emissions</p>
+    <h1>Trazabilidad de comunicados</h1>
+    <p></p>
     <button type="button" class="theme-toggle-btn" id="themeToggle" title="Cambiar tema">
       <i class="fa-solid fa-lightbulb"></i>
     </button>
@@ -1184,11 +1187,11 @@
 
       // Resetear estado de edición para que se guarde como nueva nota
       resetearEstadoEdicion();
-      
+
       // Disparar eventos para cargar sugerencias dependientes
       document.getElementById("dependencia").dispatchEvent(new Event('blur'));
       document.getElementById("medio").dispatchEvent(new Event('blur'));
-      
+
       ajustarAlturaTitular();
       window.scrollTo(0, 0);
       alert("Nota duplicada en el formulario. Puedes editarla y guardarla como una nueva nota.");
@@ -1259,7 +1262,7 @@
 
         const tdAcciones = document.createElement("td");
         tdAcciones.setAttribute('data-label', encabezadosTabla['acciones']);
-        
+
         const group = document.createElement("div");
         group.className = "acciones-btn-group";
 
@@ -1406,22 +1409,22 @@
     function generarNombreArchivoCSV() {
       // Intentamos obtener el usuario del campo de texto
       let usuario = document.getElementById('usuario').value.trim();
-      
+
       // Si el campo está vacío, intentamos obtenerlo de la última nota capturada
       if (!usuario && notas.length > 0) {
         usuario = notas[notas.length - 1].usuario;
       }
-      
+
       usuario = usuario || 'Desconocido';
 
       // Intentamos obtener la fecha del campo de texto
       let fecha = document.getElementById('fecha').value;
-      
+
       // Si la fecha está vacía, intentamos obtenerla de la última nota capturada
       if (!fecha && notas.length > 0) {
         fecha = notas[notas.length - 1].fecha;
       }
-      
+
       // Si sigue vacía, usamos la fecha de hoy
       if (!fecha) {
         fecha = new Date().toISOString().slice(0, 10);
@@ -1491,11 +1494,11 @@
 
         // 2. Envío a Google Sheets (Individual para máxima compatibilidad)
         const url = "https://script.google.com/macros/s/AKfycby4S86kCQn_-qlrRqnZXY5aCAuDkg50_YlwtkRs0NAWxyC0eNJfvJTVuRbNCV40iZtn/exec";
-        
+
         const ahora = new Date();
-        const registroStr = ahora.toLocaleString('es-ES', { 
-          year: 'numeric', month: '2-digit', day: '2-digit', 
-          hour: '2-digit', minute: '2-digit', second: '2-digit' 
+        const registroStr = ahora.toLocaleString('es-ES', {
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
 
         let total = notas.length;
