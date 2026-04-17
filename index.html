@@ -592,7 +592,7 @@
 
     <label for="id_emision">ID:</label>
     <div class="campo">
-      <input type="number" id="id_emision" name="id_emision" required step="1">
+      <input type="text" id="id_emision" name="id_emision" required>
       <div class="campo-actions">
         <input type="checkbox" id="checkId_emision" onchange="alternarBloqueo('id_emision')" tabindex="-1">
         <label for="checkId_emision" class="lock-label"><i class="fa-solid fa-lock"></i></label>
@@ -713,7 +713,7 @@
       <div id="sugEstatus" class="sugerencias"></div>
     </div>
 
-    <label for="municipio">Municipio:</label>
+    <label for="municipio">Municipio / región:</label>
     <div class="campo">
       <input type="text" id="municipio" name="municipio" autocomplete="off" required>
       <div class="campo-actions">
@@ -1564,7 +1564,7 @@
         const valB = b[columna] || '';
         let comparacion = 0;
 
-        if (columna === 'id_emision' || columna === 'ordenCaptura') comparacion = (valA - valB);
+        if (columna === 'ordenCaptura') comparacion = (valA - valB);
         else if (columna === 'fecha') {
           const dateA = new Date(valA + 'T00:00:00');
           const dateB = new Date(valB + 'T00:00:00');
