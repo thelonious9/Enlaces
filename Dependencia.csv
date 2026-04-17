@@ -3,9 +3,6 @@ Bienestar,IAAMEH
 Bienestar,Bienestar
 Bienestar,Titular
 Bienestar,Extitular
-CGCG,Titular
-CGCG,Extitular
-CGCG,CGCG
 Contraloría,Contraloría
 Contraloría,SEAH
 Contraloría,Titular
@@ -21,8 +18,6 @@ DIFH,PPNNAF
 DIFH,Junta de Asistencia
 DIFH,Titular
 DIFH,Hospital del Niño
-Gobernador,Gobernador
-Gobierno,Gobierno
 Hacienda,Catastro
 Hacienda,Hacienda
 Hacienda,Titular
@@ -43,7 +38,6 @@ Planeación,Planeación
 Planeación,DESCTI
 Planeación,Cedspi
 Planeación,Titular
-Presidencia,Presidencia
 Saderh,Saderh
 Saderh,Titular
 Sedeco,CEMR
