@@ -574,11 +574,14 @@
   <form>
     <label for="usuario">Usuario:</label>
     <div class="campo">
-      <input type="text" id="usuario" name="usuario" required>
+      <input type="text" id="usuario" name="usuario" autocomplete="off" required>
       <div class="campo-actions">
+        <button type="button" class="btn-campo" onclick="mostrarSugerencias('usuario','sugUsuario')"
+          tabindex="-1">🔽</button>
         <input type="checkbox" id="checkUsuario" onchange="alternarBloqueo('usuario')" tabindex="-1">
         <label for="checkUsuario" class="lock-label"><i class="fa-solid fa-lock"></i></label>
       </div>
+      <div id="sugUsuario" class="sugerencias"></div>
     </div>
 
     <label for="fecha">Fecha:</label>
@@ -853,6 +856,7 @@
 
     // RUTAS RELATIVAS (Asegúrese de que estos archivos estén en la misma carpeta)
     const urls = {
+      usuarios: "./Usuario.csv",
       dependencias: "./Dependencia.csv",
       medios: "./Medio.csv", // Usado para la dependencia Medio -> Canal
       generos: "./Genero.csv",
@@ -1632,7 +1636,17 @@
 
     // --- Eventos ---
     document.addEventListener("DOMContentLoaded", async () => {
-      let orgMap, firmaMap, medioToCanalMap;
+      let orgMap, firmaMap, medioToCanalMap, usuarioToDepMap;
+
+      const usuarioData = await cargarMapa(urls.usuarios);
+      usuarioToDepMap = usuarioData.map;
+      autocompletar("usuario", "sugUsuario", usuarioData.claves, user => {
+        const dep = (usuarioToDepMap[user] && usuarioToDepMap[user].length > 0) ? usuarioToDepMap[user][0] : '';
+        if (dep) {
+          document.getElementById("dependencia").value = dep;
+          document.getElementById("dependencia").dispatchEvent(new Event('blur'));
+        }
+      });
 
       const depData = await cargarMapa(urls.dependencias);
       orgMap = depData.map;
@@ -1663,7 +1677,20 @@
         if (firmas.length === 1) document.getElementById("firma").value = firmas[0];
       });
 
-      // Blur events para dependencia y medio
+      // Blur events for usuario, dependencia and medio
+      document.getElementById("usuario").addEventListener("blur", (e) => {
+        const val = e.target.value.trim();
+        const key = findKeyCaseInsensitive(usuarioToDepMap, val);
+        if (key) {
+          e.target.value = key;
+          const dep = (usuarioToDepMap[key] && usuarioToDepMap[key].length > 0) ? usuarioToDepMap[key][0] : '';
+          if (dep) {
+            document.getElementById("dependencia").value = dep;
+            document.getElementById("dependencia").dispatchEvent(new Event('blur'));
+          }
+        }
+      });
+
       document.getElementById("dependencia").addEventListener("blur", (e) => {
         const val = e.target.value.trim();
         const key = findKeyCaseInsensitive(orgMap, val);
