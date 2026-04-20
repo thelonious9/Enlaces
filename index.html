@@ -857,6 +857,7 @@
     // RUTAS RELATIVAS (Asegúrese de que estos archivos estén en la misma carpeta)
     const urls = {
       usuarios: "./Usuario.csv",
+      abrev: "./Abrev.csv",
       dependencias: "./Dependencia.csv",
       medios: "./Medio.csv", // Usado para la dependencia Medio -> Canal
       generos: "./Genero.csv",
@@ -1118,6 +1119,42 @@
       }
     }
     // FIN FUNCIÓN DE DEPENDENCIA
+ 
+    function actualizarID() {
+      const inputID = document.getElementById('id_emision');
+      const dep = document.getElementById('dependencia').value.trim();
+      const fec = document.getElementById('fecha').value;
+ 
+      // Dividimos el ID actual por "/" para conservar la parte central editada
+      let currentVal = inputID.value || '';
+      let parts = currentVal.split('/');
+ 
+      // 1. Obtener Abrev de Dependencia
+      let abrev = '';
+      if (dep) {
+        // Buscamos en el mapa de abreviaturas
+        const key = findKeyCaseInsensitive(abrevMap, dep);
+        if (key && abrevMap[key] && abrevMap[key].length > 0) {
+          abrev = abrevMap[key][0];
+        } else {
+          abrev = parts[0] || ''; // Mantenemos lo que había si no hay match
+        }
+      } else {
+        abrev = parts[0] || '';
+      }
+ 
+      // 2. Conservar o inicializar la parte central (Editable texto.Editable número)
+      let middle = parts[1] || '.';
+ 
+      // 3. Obtener Año de Fecha
+      let year = fec ? fec.split('-')[0] : (parts[2] || '');
+ 
+      // Construir el nuevo ID
+      if (abrev || middle !== '.' || year) {
+        inputID.value = `${abrev}/${middle}/${year}`;
+        localStorage.setItem('id_emision', inputID.value);
+      }
+    }
 
     function ajustarAlturaTitular() {
       const el = document.getElementById('titular');
@@ -1637,6 +1674,11 @@
     // --- Eventos ---
     document.addEventListener("DOMContentLoaded", async () => {
       let orgMap, firmaMap, medioToCanalMap, usuarioToDepMap;
+      window.abrevMap = {}; // Hacerlo accesible globalmente si es necesario
+
+      // Carga de Abreviaturas
+      const abrevData = await cargarMapa(urls.abrev);
+      window.abrevMap = abrevData.map;
 
       const usuarioData = await cargarMapa(urls.usuarios);
       usuarioToDepMap = usuarioData.map;
@@ -1689,6 +1731,7 @@
             document.getElementById("dependencia").dispatchEvent(new Event('blur'));
           }
         }
+        actualizarID(); // Actualizar ID al cambiar usuario
       });
 
       document.getElementById("dependencia").addEventListener("blur", (e) => {
@@ -1696,7 +1739,12 @@
         const key = findKeyCaseInsensitive(orgMap, val);
         if (key) { e.target.value = key; autocompletar("organismo", "sugOrg", orgMap[key] || []); }
         else { e.target.value = val; autocompletar("organismo", "sugOrg", []); }
+        actualizarID(); // Actualizar ID al cambiar dependencia
       });
+
+      // Listener para Fecha para actualizar el ID
+      document.getElementById("fecha").addEventListener("change", actualizarID);
+      document.getElementById("fecha").addEventListener("input", actualizarID);
 
       document.getElementById("medio").addEventListener("blur", (e) => {
         const val = e.target.value.trim();
