@@ -1000,20 +1000,18 @@
           if (callback) callback(valorSeleccionado);
           campo.dispatchEvent(new Event('blur'));
 
-          // 3. Simula el movimiento de foco si fue la tecla Tab
-          if (e.key === "Tab") {
-            const form = document.querySelector('form');
-            // Solo busca inputs de texto y fecha que no estén marcados para ser saltados (tabindex="-1")
-            const focusable = Array.from(form.querySelectorAll('input[type="text"]:not([tabindex="-1"]), input[type="date"]:not([tabindex="-1"])'));
-            const index = focusable.indexOf(e.target);
+          // 3. Simula el movimiento de foco para Enter o Tab
+          const form = document.querySelector('form');
+          // Solo busca inputs de texto, fecha y textarea que no estén marcados para ser saltados (tabindex="-1")
+          const focusable = Array.from(form.querySelectorAll('input[type="text"]:not([tabindex="-1"]), input[type="date"]:not([tabindex="-1"]), textarea:not([tabindex="-1"])'));
+          const index = focusable.indexOf(e.target);
 
-            // Mueve el foco al siguiente campo enfocable
-            if (index > -1 && index < focusable.length - 1) {
-              focusable[index + 1].focus();
-            } else if (index === focusable.length - 1) {
-              // Si es el último, vuelve al titular
-              document.getElementById('titular').focus();
-            }
+          // Mueve el foco al siguiente campo enfocable
+          if (index > -1 && index < focusable.length - 1) {
+            focusable[index + 1].focus();
+          } else if (index === focusable.length - 1) {
+            // Si es el último, vuelve al inicio (Usuario)
+            document.getElementById('usuario').focus();
           }
           return; // Termina la función aquí
         }
@@ -1040,6 +1038,14 @@
             if (callback) callback(campo.value);
             // Disparar blur para actualizar dependencias
             campo.dispatchEvent(new Event('blur'));
+
+            // --- 🌟 MOVER FOCO AL SIGUIENTE CAMPO AL PRESIONAR ENTER 🌟 ---
+            const form = document.querySelector('form');
+            const focusable = Array.from(form.querySelectorAll('input[type="text"]:not([tabindex="-1"]), input[type="date"]:not([tabindex="-1"]), textarea:not([tabindex="-1"])'));
+            const indexNext = focusable.indexOf(campo);
+            if (indexNext > -1 && indexNext < focusable.length - 1) {
+              focusable[indexNext + 1].focus();
+            }
           }
         }
       });
@@ -1458,18 +1464,8 @@
 
       usuario = usuario || 'Desconocido';
 
-      // Intentamos obtener la fecha del campo de texto
-      let fecha = document.getElementById('fecha').value;
-
-      // Si la fecha está vacía, intentamos obtenerla de la última nota capturada
-      if (!fecha && notas.length > 0) {
-        fecha = notas[notas.length - 1].fecha;
-      }
-
-      // Si sigue vacía, usamos la fecha de hoy
-      if (!fecha) {
-        fecha = new Date().toISOString().slice(0, 10);
-      }
+      // Usamos la fecha de hoy para el nombre del archivo
+      fecha = new Date().toISOString().slice(0, 10);
 
       // Limpiamos el nombre para que sea seguro como nombre de archivo
       const usuarioLimpio = usuario.replace(/[\\/:*?"<>|]/g, '');
@@ -1811,12 +1807,33 @@
       CAMPOS_CON_BLOQUEO.forEach(id => {
         const campo = document.getElementById(id);
         if (localStorage.getItem(id)) campo.value = localStorage.getItem(id);
+        
+        // 🌟 DEFAULT: Si la fecha está vacía, poner hoy 🌟
+        if (id === 'fecha' && !campo.value) {
+          campo.value = new Date().toISOString().slice(0, 10);
+        }
+
         campo.addEventListener("input", () => localStorage.setItem(id, campo.value));
 
         const chk = document.getElementById(`check${id.charAt(0).toUpperCase() + id.slice(1)}`);
         if (chk) {
           chk.checked = localStorage.getItem(`bloqueado_${id}`) === 'true';
           alternarBloqueo(id);
+        }
+      });
+
+      // 🌟 LÓGICA DE SELECCIÓN DE SEGMENTO PARA ID 🌟
+      const idEmisionField = document.getElementById('id_emision');
+      idEmisionField.addEventListener('focus', function() {
+        const val = this.value;
+        const firstSlash = val.indexOf('/');
+        const lastSlash = val.lastIndexOf('/');
+        if (firstSlash !== -1 && lastSlash !== -1 && firstSlash !== lastSlash) {
+          // Selecciona la parte entre las dos barras
+          this.setSelectionRange(firstSlash + 1, lastSlash);
+        } else if (firstSlash !== -1) {
+           // Si solo hay una barra (caso raro pero por si acaso)
+           this.setSelectionRange(firstSlash + 1, val.length);
         }
       });
 
@@ -1868,9 +1885,9 @@
           if (items.length !== 1) { // Nota: El caso items.length === 1 está manejado dentro del autocompletar
             e.preventDefault();
 
-            // Obtener todos los elementos enfocables (solo inputs de texto y fecha, excluyendo elementos con tabindex="-1")
+            // Obtener todos los elementos enfocables (incluyendo TEXTAREA)
             const form = document.querySelector('form');
-            const focusable = Array.from(form.querySelectorAll('input[type="text"]:not([tabindex="-1"]), input[type="date"]:not([tabindex="-1"])'));
+            const focusable = Array.from(form.querySelectorAll('input[type="text"]:not([tabindex="-1"]), input[type="date"]:not([tabindex="-1"]), textarea:not([tabindex="-1"])'));
 
             const index = focusable.indexOf(e.target);
 
@@ -1878,8 +1895,8 @@
               // Mueve el foco al siguiente campo
               focusable[index + 1].focus();
             } else if (index === focusable.length - 1) {
-              // Si es el último campo, regresa al inicio (Titular)
-              document.getElementById('titular').focus();
+              // Si es el último campo, regresa al inicio (Usuario)
+              document.getElementById('usuario').focus();
             }
           }
         }
