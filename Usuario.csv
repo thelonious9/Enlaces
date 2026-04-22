@@ -1,25 +1,25 @@
-Usuario,Dependencia
-Janeth Canales,SDPEE
-Jorge Guzmán,UPLAPH
-Crystall García,Sipdus
-Laura Rivera,Sipdus
-Godeleva Pérez,Hacienda
-Guadalupe Carrasco,Saderh
-Anel Fernández,Saderh
-Carlos Santamaría,OM
-Juan Luis Escobar,DIFH
-Iván Hernández,SEPH
-Emmanuel Huerta,Bienestar
-Divani Cardoso, Bienestar
-Vanessa Sánchez,Contraloría
-Sergio García,SEPH
-Mackency Gutiérrez,Semarnath
-Patricia Sánchez,Sedeco
-Eder Arteaga,PGJEH
-Eliza Herrera,Semarnath
-Juan José Fernández,STPSH
-Alejandro Mera,STPSH
-Alejandra Pasten,Semot
-Julio Violante,Cultura
-Javier Trejo,Semot
-Prentice Escamilla,Cultura
+Usuario,Dependencia,Siglas
+Janeth Canales,Despacho,SDPEE
+Jorge Guzmán,Planeación,UPLAPH
+Crystall García,Sipdus,Sipdus
+Laura Rivera,Sipdus,Sipdus
+Godeleva Pérez,Hacienda,Hacienda
+Guadalupe Carrasco,Saderh,Saderh
+Anel Fernández,Saderh,Saderh
+Carlos Santamaría,Oficialía Mayor,OM
+Juan Luis Escobar,DIFH,DIFH
+Iván Hernández,SEPH,SEPH
+Emmanuel Huerta,Bienestar,Bienestar
+Divani Cardoso, Bienestar,Bienestar
+Vanessa Sánchez,Contraloría,Contraloría
+Sergio García,SEPH,SEPH
+Mackency Gutiérrez,Semarnath,Semarnath
+Patricia Sánchez,Sedeco,Sedeco
+Eder Arteaga,PGJEH,PGJEH
+Eliza Herrera,Semarnath,Semarnath
+Juan José Fernández,STPSH,STPSH
+Alejandro Mera,STPSH,STPSH
+Alejandra Pasten,Semot,Semot
+Julio Violante,Cultura,Cultura
+Javier Trejo,Semot,Semot
+Prentice Escamilla,Cultura,Cultura

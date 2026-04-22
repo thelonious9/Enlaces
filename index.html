@@ -1132,7 +1132,7 @@
     }
     // FIN FUNCIÓN DE DEPENDENCIA
  
-    function actualizarID() {
+    function actualizarID(forcedAbrev) {
       const inputID = document.getElementById('id_emision');
       const dep = document.getElementById('dependencia').value.trim();
       const fec = document.getElementById('fecha').value;
@@ -1142,8 +1142,8 @@
       let parts = currentVal.split('/');
  
       // 1. Obtener Abrev de Dependencia
-      let abrev = '';
-      if (dep) {
+      let abrev = (typeof forcedAbrev === 'string') ? forcedAbrev : '';
+      if (!abrev && dep) {
         // Buscamos en el mapa de abreviaturas
         const key = findKeyCaseInsensitive(abrevMap, dep);
         if (key && abrevMap[key] && abrevMap[key].length > 0) {
@@ -1151,7 +1151,7 @@
         } else {
           abrev = parts[0] || ''; // Mantenemos lo que había si no hay match
         }
-      } else {
+      } else if (!abrev) {
         abrev = parts[0] || '';
       }
  
@@ -1682,13 +1682,23 @@
       const abrevData = await cargarMapa(urls.abrev);
       window.abrevMap = abrevData.map;
 
-      const usuarioData = await cargarMapa(urls.usuarios);
-      usuarioToDepMap = usuarioData.map;
-      autocompletar("usuario", "sugUsuario", usuarioData.claves, user => {
-        const dep = (usuarioToDepMap[user] && usuarioToDepMap[user].length > 0) ? usuarioToDepMap[user][0] : '';
-        if (dep) {
-          document.getElementById("dependencia").value = dep;
-          document.getElementById("dependencia").dispatchEvent(new Event('blur'));
+      const usuarioDataRaw = limpiarFilasCSV(await cargarCSV(urls.usuarios));
+      const usuarioDataMap = {};
+      const usuariosClaves = [];
+      usuarioDataRaw.forEach(([user, dep, sig]) => {
+        if (!user) return;
+        usuarioDataMap[user] = { dependencia: dep || '', siglas: sig || '' };
+        usuariosClaves.push(user);
+      });
+
+      autocompletar("usuario", "sugUsuario", usuariosClaves, user => {
+        const uData = usuarioDataMap[user];
+        if (uData) {
+          if (uData.dependencia) {
+            document.getElementById("dependencia").value = uData.dependencia;
+            document.getElementById("dependencia").dispatchEvent(new Event('blur'));
+          }
+          actualizarID(uData.siglas);
         }
       });
 
@@ -1724,16 +1734,18 @@
       // Blur events for usuario, dependencia and medio
       document.getElementById("usuario").addEventListener("blur", (e) => {
         const val = e.target.value.trim();
-        const key = findKeyCaseInsensitive(usuarioToDepMap, val);
+        const key = findKeyCaseInsensitive(usuarioDataMap, val);
         if (key) {
           e.target.value = key;
-          const dep = (usuarioToDepMap[key] && usuarioToDepMap[key].length > 0) ? usuarioToDepMap[key][0] : '';
-          if (dep) {
-            document.getElementById("dependencia").value = dep;
+          const uData = usuarioDataMap[key];
+          if (uData.dependencia) {
+            document.getElementById("dependencia").value = uData.dependencia;
             document.getElementById("dependencia").dispatchEvent(new Event('blur'));
           }
+          actualizarID(uData.siglas);
+        } else {
+          actualizarID();
         }
-        actualizarID(); // Actualizar ID al cambiar usuario
       });
 
       document.getElementById("dependencia").addEventListener("blur", (e) => {
