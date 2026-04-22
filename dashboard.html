@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Dashboard · Trazabilidad de Comunicados</title>
@@ -8,68 +9,290 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        :root { --guinda:#611232; --dorado:#A57F2C; --guinda-light:#7E183B; --bg:#f8f9fa; }
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body { font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif; margin:0; background:var(--bg); display:flex; flex-direction:column; height:100vh; color:#333; }
+        :root {
+            --guinda: #611232;
+            --dorado: #A57F2C;
+            --guinda-light: #7E183B;
+            --bg: #f8f9fa;
+        }
 
-        .header { background:var(--guinda); color:white; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid var(--dorado); z-index:100; box-shadow:0 2px 10px rgba(0,0,0,.2); }
-        .header h2 { margin:0; }
-        .header-btns { display:flex; gap:10px; align-items:center; }
-        .btn-header { background:var(--dorado); color:white; border:none; padding:8px 18px; border-radius:4px; cursor:pointer; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,.1); text-decoration:none; font-size:14px; }
-        .btn-header:hover { opacity:.85; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        .main { display:flex; flex:1; overflow:hidden; position:relative; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            color: #333;
+        }
 
-        .sidebar { width:320px; background:white; padding:20px; border-right:1px solid #dee2e6; overflow-y:auto; transition:all .3s ease; flex-shrink:0; box-shadow:2px 0 5px rgba(0,0,0,.05); }
-        .sidebar.collapsed { width:0; padding:0; opacity:0; pointer-events:none; }
+        .header {
+            background: var(--guinda);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--dorado);
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
+        }
 
-        .floating-toggle { position:fixed; left:300px; top:50%; transform:translateY(-50%); background:var(--guinda); color:white; border:2px solid var(--dorado); border-radius:50%; width:36px; height:36px; cursor:pointer; z-index:1000; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 8px rgba(0,0,0,.2); transition:left .3s ease; font-size:14px; }
-        .sidebar.collapsed+.floating-toggle { left:10px; }
+        .header h2 {
+            margin: 0;
+        }
 
-        .content { flex:1; padding:24px; overflow-y:auto; display:flex; flex-direction:column; gap:24px; }
+        .header-btns {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
 
-        .kpi-container { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
-        .kpi-card { background:white; border-radius:8px; padding:15px; box-shadow:0 2px 8px rgba(0,0,0,.08); border-left:5px solid var(--guinda); display:flex; flex-direction:column; justify-content:center; transition: border-color .3s ease; }
-        .kpi-card.pos { border-left-color: #2a9d8f!important; }
-        .kpi-card.inf { border-left-color: #ffb703!important; }
-        .kpi-card.neg { border-left-color: #e63946!important; }
-        .kpi-card h4 { margin:0; font-size:11px; color:#666; text-transform:uppercase; letter-spacing:.5px; }
-        .kpi-card .val { font-size:20px; font-weight:bold; color:var(--guinda); margin-top:5px; }
-        .kpi-card .sub { font-size:10px; color:#888; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .btn-header {
+            background: var(--dorado);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+            text-decoration: none;
+            font-size: 14px;
+        }
 
-        .charts-row { display:grid; grid-template-columns:1fr 2fr; gap:24px; }
-        .charts-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:24px; }
-        .card { background:white; padding:20px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.05); min-height:400px; display:flex; flex-direction:column; }
-        .card.full { grid-column:span 2; }
-        .card.elastic { height:auto!important; min-height:350px; }
-        .card.elastic canvas { max-height:none!important; }
+        .btn-header:hover {
+            opacity: .85;
+        }
 
-        .f-group { margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid #eee; }
-        .f-group:last-child { border-bottom:none; }
-        .f-group label { display:block; font-size:11px; font-weight:bold; color:var(--guinda); text-transform:uppercase; margin-bottom:6px; }
-        .f-group select, .f-group input { width:100%; padding:10px; border-radius:4px; border:1px solid #ced4da; background:#fff; font-size:13px; }
-        .f-group select[multiple] { height:120px; }
-        .analytics-ctrl { background:#f1f3f5; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #e9ecef; }
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: white;
+            padding: 20px;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            transition: all .3s ease;
+            flex-shrink: 0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, .05);
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+            padding: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .floating-toggle {
+            position: fixed;
+            left: 300px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--guinda);
+            color: white;
+            border: 2px solid var(--dorado);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, .2);
+            transition: left .3s ease;
+            font-size: 14px;
+        }
+
+        .sidebar.collapsed+.floating-toggle {
+            left: 10px;
+        }
+
+        .content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+            border-left: 5px solid var(--guinda);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: border-color .3s ease;
+        }
+
+        .kpi-card.pos {
+            border-left-color: #2a9d8f !important;
+        }
+
+        .kpi-card.inf {
+            border-left-color: #ffb703 !important;
+        }
+
+        .kpi-card.neg {
+            border-left-color: #e63946 !important;
+        }
+
+        .kpi-card h4 {
+            margin: 0;
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .kpi-card .val {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--guinda);
+            margin-top: 5px;
+        }
+
+        .kpi-card .sub {
+            font-size: 10px;
+            color: #888;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 24px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .05);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card.full {
+            grid-column: span 2;
+        }
+
+        .card.elastic {
+            height: auto !important;
+            min-height: 350px;
+        }
+
+        .card.elastic canvas {
+            max-height: none !important;
+        }
+
+        .f-group {
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .f-group:last-child {
+            border-bottom: none;
+        }
+
+        .f-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--guinda);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .f-group select,
+        .f-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            background: #fff;
+            font-size: 13px;
+        }
+
+        .f-group select[multiple] {
+            height: 120px;
+        }
+
+        .analytics-ctrl {
+            background: #f1f3f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
 
         @media(max-width:900px) {
-            .kpi-container { grid-template-columns:repeat(2,1fr); }
-            .charts-row, .charts-grid { grid-template-columns:1fr; }
-            .card.full { grid-column:span 1; }
+            .kpi-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-row,
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card.full {
+                grid-column: span 1;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="header">
-        <h2><i class="fa-solid fa-chart-pie"></i> Dashboard de Comunicados — <span style="color:var(--dorado)">GEH</span></h2>
+        <h2><i class="fa-solid fa-chart-pie"></i> Dashboard de Comunicados — <span
+                style="color:var(--dorado)">GEH</span></h2>
         <div class="header-btns">
-            <button class="btn-header" onclick="genPDF()"><i class="fa-solid fa-file-pdf"></i> Descargar Reporte (PDF)</button>
+            <button class="btn-header" onclick="genPDF()"><i class="fa-solid fa-file-pdf"></i> Descargar Reporte
+                (PDF)</button>
             <a href="index.html" class="btn-header"><i class="fa-solid fa-arrow-left"></i> Volver al Registro</a>
         </div>
     </div>
 
     <div class="main">
         <div class="sidebar" id="sidebar">
-            <h3 style="color:var(--guinda);margin-top:0;border-bottom:2px solid var(--dorado);padding-bottom:12px;font-size:18px;">Panel de Filtros</h3>
+            <h3
+                style="color:var(--guinda);margin-top:0;border-bottom:2px solid var(--dorado);padding-bottom:12px;font-size:18px;">
+                Panel de Filtros</h3>
 
             <div class="analytics-ctrl">
                 <div class="f-group">
@@ -108,18 +331,44 @@
                 <div id="f-dynamic-cont"></div>
             </div>
 
-            <button onclick="location.reload()" style="width:100%;margin-top:20px;padding:12px;cursor:pointer;border-radius:4px;border:1px solid #ced4da;background:#fff;font-weight:bold;color:#666;">Restablecer Tablero</button>
+            <button onclick="location.reload()"
+                style="width:100%;margin-top:20px;padding:12px;cursor:pointer;border-radius:4px;border:1px solid #ced4da;background:#fff;font-weight:bold;color:#666;">Restablecer
+                Tablero</button>
         </div>
         <button class="floating-toggle" id="toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">◀</button>
 
         <div class="content" id="dash">
             <div class="kpi-container">
-                <div class="kpi-card" id="card-rendimiento"><h4>Rendimiento</h4><div class="val" id="kpi-rendimiento">0%</div><div class="sub" id="kpi-rendimiento-val">0 medios</div></div>
-                <div class="kpi-card" id="card-total"><h4>Total Emisiones</h4><div class="val" id="kpi-total">0</div><div class="sub" id="kpi-total-sub">Todas</div></div>
-                <div class="kpi-card" id="card-dep"><h4>Top Dependencia</h4><div class="val" id="kpi-dep">-</div><div class="sub" id="kpi-dep-val">0 menciones</div></div>
-                <div class="kpi-card" id="card-tema"><h4>Top Tema</h4><div class="val" id="kpi-tema">-</div><div class="sub" id="kpi-tema-val">0 menciones</div></div>
-                <div class="kpi-card" id="card-mun"><h4>Top Municipio</h4><div class="val" id="kpi-mun">-</div><div class="sub" id="kpi-mun-val">0 menciones</div></div>
-                <div class="kpi-card" id="card-medio"><h4>Medio Principal</h4><div class="val" id="kpi-medio">-</div><div class="sub" id="kpi-medio-val">0% del total</div></div>
+                <div class="kpi-card" id="card-rendimiento">
+                    <h4>Rendimiento</h4>
+                    <div class="val" id="kpi-rendimiento">0%</div>
+                    <div class="sub" id="kpi-rendimiento-val">0 medios</div>
+                </div>
+                <div class="kpi-card" id="card-total">
+                    <h4>Total Emisiones</h4>
+                    <div class="val" id="kpi-total">0</div>
+                    <div class="sub" id="kpi-total-sub">Todas</div>
+                </div>
+                <div class="kpi-card" id="card-dep">
+                    <h4>Top Dependencia</h4>
+                    <div class="val" id="kpi-dep">-</div>
+                    <div class="sub" id="kpi-dep-val">0 menciones</div>
+                </div>
+                <div class="kpi-card" id="card-tema">
+                    <h4>Top Tema</h4>
+                    <div class="val" id="kpi-tema">-</div>
+                    <div class="sub" id="kpi-tema-val">0 menciones</div>
+                </div>
+                <div class="kpi-card" id="card-mun">
+                    <h4>Top Municipio</h4>
+                    <div class="val" id="kpi-mun">-</div>
+                    <div class="sub" id="kpi-mun-val">0 menciones</div>
+                </div>
+                <div class="kpi-card" id="card-medio">
+                    <h4>Medio Principal</h4>
+                    <div class="val" id="kpi-medio">-</div>
+                    <div class="sub" id="kpi-medio-val">0% del total</div>
+                </div>
             </div>
 
             <div class="charts-row">
@@ -138,8 +387,10 @@
             </div>
 
             <!-- Sección de Titulares (Ahora siempre visible) -->
-            <div id="titulares-section" style="background:white; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.05); margin-top:20px;">
-                <div style="background:var(--guinda); color:white; padding:15px 20px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+            <div id="titulares-section"
+                style="background:white; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.05); margin-top:20px;">
+                <div
+                    style="background:var(--guinda); color:white; padding:15px 20px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
                     DETALLE DE NOTAS (FICHAS)
                 </div>
                 <div id="titulares-list" style="padding:20px; max-height:600px; overflow-y:auto; background:#fdfdfd;">
@@ -149,329 +400,329 @@
         </div>
     </div>
 
-<script>
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTlpktxpGxd__D3mJ4os7JSQOhBrtU6m4IeCX23GpHlI5e5U4l27kKtoDSggw3niY8lqZcL_rCHV8Q/pub?gid=0&single=true&output=csv';
-    let rData = [];
-    let vCharts = {};
-    const vColsHierarchy = ["Estatus", "Dependencia", "ID_Emision", "Canal", "Medio", "Municipio", "Organismo", "Género"];
-    const paletteDefault = ['#611232', '#A57F2C', '#7E183B', '#D4AF37', '#4D4D4D', '#C0C0C0', '#800000', '#B8860B', '#808080', '#2a9d8f', '#ffb703', '#e63946'];
-    const palettePos = ['#2a9d8f', '#264653', '#2a9d8fbb', '#1d6f66', '#a7c957', '#386641'];
-    const paletteNeg = ['#e63946', '#d62828', '#e63946bb', '#9d0208', '#6a040f', '#370617'];
-    const paletteInf = ['#ffb703', '#fb8500', '#ffb703bb', '#e9c46a', '#f4a261', '#ee9b00'];
+    <script>
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTlpktxpGxd__D3mJ4os7JSQOhBrtU6m4IeCX23GpHlI5e5U4l27kKtoDSggw3niY8lqZcL_rCHV8Q/pub?gid=0&single=true&output=csv';
+        let rData = [];
+        let vCharts = {};
+        const vColsHierarchy = ["Estatus", "Dependencia", "ID_Emision", "Canal", "Medio", "Municipio", "Organismo", "Género"];
+        const paletteDefault = ['#611232', '#A57F2C', '#7E183B', '#D4AF37', '#4D4D4D', '#C0C0C0', '#800000', '#B8860B', '#808080', '#2a9d8f', '#ffb703', '#e63946'];
+        const palettePos = ['#2a9d8f', '#264653', '#2a9d8fbb', '#1d6f66', '#a7c957', '#386641'];
+        const paletteNeg = ['#e63946', '#d62828', '#e63946bb', '#9d0208', '#6a040f', '#370617'];
+        const paletteInf = ['#ffb703', '#fb8500', '#ffb703bb', '#e9c46a', '#f4a261', '#ee9b00'];
 
-    async function start() {
-        const dash = document.getElementById('dash');
-        try {
-            // Cache-busting para forzar actualización de Google Sheets
-            const bust = `&cb=${new Date().getTime()}`;
-            const response = await fetch(CSV_URL + bust);
-            if (!response.ok) throw new Error("Error en respuesta de red");
-            
-            const buffer = await response.arrayBuffer();
-            const csvText = new TextDecoder('utf-8').decode(buffer);
-            const parsed = parseCSV(csvText);
+        async function start() {
+            const dash = document.getElementById('dash');
+            try {
+                // Cache-busting para forzar actualización de Google Sheets
+                const bust = `&cb=${new Date().getTime()}`;
+                const response = await fetch(CSV_URL + bust);
+                if (!response.ok) throw new Error("Error en respuesta de red");
 
-            rData = parsed.map(d => {
-                if (!d.fecha) return null;
-                // Intentar parsear fecha YYYY-MM-DD o DD/MM/YYYY
-                let dateObj;
-                if (d.fecha.includes('-')) {
-                    const parts = d.fecha.split('-');
-                    dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                } else if (d.fecha.includes('/')) {
-                    const parts = d.fecha.split('/');
-                    dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
-                } else {
-                    dateObj = new Date(d.fecha);
+                const buffer = await response.arrayBuffer();
+                const csvText = new TextDecoder('utf-8').decode(buffer);
+                const parsed = parseCSV(csvText);
+
+                rData = parsed.map(d => {
+                    if (!d.fecha) return null;
+                    // Intentar parsear fecha YYYY-MM-DD o DD/MM/YYYY
+                    let dateObj;
+                    if (d.fecha.includes('-')) {
+                        const parts = d.fecha.split('-');
+                        dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                    } else if (d.fecha.includes('/')) {
+                        const parts = d.fecha.split('/');
+                        dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                    } else {
+                        dateObj = new Date(d.fecha);
+                    }
+
+                    if (isNaN(dateObj.getTime())) return null;
+
+                    const yyyy = dateObj.getFullYear();
+                    const mm = dateObj.getMonth() + 1;
+                    const dd = dateObj.getDate();
+
+                    return {
+                        ...d,
+                        _date: dateObj,
+                        _week: getWeek(dateObj),
+                        _month: `${yyyy}-${String(mm).padStart(2, '0')}`,
+                        _monthLabel: `${["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mm - 1]}-${String(yyyy).slice(-2)}`,
+                        _dayLabel: `${dd}-${["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mm - 1]}`
+                    };
+                }).filter(x => x);
+
+                console.log("Registros cargados:", rData.length);
+                if (rData.length === 0) {
+                    dash.innerHTML = "<h2>No se encontraron datos válidos en la hoja de Google Sheets.</h2>";
+                    return;
                 }
-                
-                if (isNaN(dateObj.getTime())) return null;
 
-                const yyyy = dateObj.getFullYear();
-                const mm = dateObj.getMonth() + 1;
-                const dd = dateObj.getDate();
+                initFilterStructure();
+                updateFilters('Estatus');
 
-                return {
-                    ...d,
-                    _date: dateObj,
-                    _week: getWeek(dateObj),
-                    _month: `${yyyy}-${String(mm).padStart(2, '0')}`,
-                    _monthLabel: `${["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mm - 1]}-${String(yyyy).slice(-2)}`,
-                    _dayLabel: `${dd}-${["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mm - 1]}`
-                };
-            }).filter(x => x);
+                // Mostrar fecha de actualización
+                const now = new Date().toLocaleTimeString();
+                console.log("Dashboard actualizado a las " + now);
+            } catch (e) {
+                console.error("Error cargando datos:", e);
+                dash.innerHTML = `<h2>Error cargando datos: ${e.message}</h2><p>Verifica la conexión a internet o el enlace de Google Sheets.</p>`;
+            }
+        }
 
-            console.log("Registros cargados:", rData.length);
-            if (rData.length === 0) {
-                dash.innerHTML = "<h2>No se encontraron datos válidos en la hoja de Google Sheets.</h2>";
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/);
+            if (lines.length < 2) return [];
+            const headerLine = lines[0].replace(/^\uFEFF/, "").split(',');
+            const headers = headerLine.map(h => h.trim().replace(/"/g, '').toLowerCase());
+
+            // Mapeo flexible para asegurar que encontremos las columnas correctas
+            const keyMap = {
+                'id': 'id_emision',
+                'id_emision': 'id_emision',
+                'id emisión': 'id_emision',
+                'id emision': 'id_emision',
+                'género': 'género',
+                'genero': 'género',
+                'estatus': 'estatus',
+                'dependencia': 'dependencia',
+                'canal': 'canal',
+                'canal de medios': 'canal',
+                'medio': 'medio',
+                'municipio': 'municipio',
+                'organismo': 'organismo',
+                'tema': 'tema',
+                'titular': 'titular',
+                'fecha': 'fecha',
+                'clave': 'clave',
+                'cve': 'clave',
+                'clv': 'clave',
+                'clave_emision': 'clave',
+                'clave emision': 'clave'
+            };
+
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const values = [];
+                let current = '', inQuotes = false;
+                for (let char of line) {
+                    if (char === '"') inQuotes = !inQuotes;
+                    else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
+                    else current += char;
+                }
+                values.push(current.trim());
+                const row = {};
+                headers.forEach((h, idx) => {
+                    // Buscar si el header (h) o algo similar está en el keyMap
+                    const mappedKey = keyMap[h] || h;
+                    row[mappedKey] = (values[idx] || '').replace(/^"|"$/g, '').replace(/""/g, '"').trim();
+                });
+                data.push(row);
+            }
+            return data;
+        }
+
+        function getWeek(date) {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return `${d.getUTCFullYear()}-W${String(Math.ceil((((d - yearStart) / 86400000) + 1) / 7)).padStart(2, '0')}`;
+        }
+
+        function initFilterStructure() {
+            const container = document.getElementById('f-dynamic-cont');
+            container.innerHTML = "";
+            ["Medio", "Municipio", "Organismo", "Género"].forEach(col => {
+                const div = document.createElement('div');
+                div.className = 'f-group';
+                div.innerHTML = `<label id="lbl-${col}">${col}</label><select id="sel-${col}" onchange="updateFilters()"></select>`;
+                container.appendChild(div);
+            });
+        }
+
+        function updateFilters() {
+            const f = getCurrentFilterState();
+            ["Fecha", ...vColsHierarchy].forEach(col => {
+                const s = document.getElementById(`sel-${col}`);
+                if (!s) return;
+
+                // Lógica de filtrado cruzado: para cada filtro, mostrar opciones basadas en los DEMÁS filtros activos
+                let sourceItems = rData.filter(d => {
+                    // Filtrar por Fecha (siempre se aplica si no es el filtro de Fecha)
+                    if (col !== "Fecha" && f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
+
+                    // Filtrar por todos los demás filtros
+                    for (let otherCol of vColsHierarchy) {
+                        if (otherCol === col) continue; // No filtrarse a sí mismo
+                        const val = f[otherCol];
+                        if (val === "Todos" || (Array.isArray(val) && val.length === 0)) continue;
+
+                        const dVal = String(d[otherCol.toLowerCase()] || "N/A");
+                        if (Array.isArray(val)) {
+                            if (!val.includes(dVal)) return false;
+                        } else {
+                            if (dVal !== val) return false;
+                        }
+                    }
+                    return true;
+                });
+                renderSelectOptions(s, col, sourceItems, f[col]);
+            });
+            applyFilters();
+        }
+
+        function renderSelectOptions(select, col, items, activeValue) {
+            if (col === "Fecha") {
+                const allDates = [...new Set(rData.map(d => d._month))].sort().reverse();
+                select.innerHTML = `<option value="Todos">-- Todos los meses --</option>` +
+                    allDates.map(m => `<option value="${m}" ${m === activeValue ? 'selected' : ''}>${m}</option>`).join('');
+                return;
+            }
+            let optionsSet = {};
+            items.forEach(d => { const v = String(d[col.toLowerCase()] || "N/A"); optionsSet[v] = (optionsSet[v] || 0) + 1; });
+            const sortedKeys = Object.keys(optionsSet).sort((a, b) => optionsSet[b] - optionsSet[a]);
+            let html = `<option value="Todos">-- Todos (${sortedKeys.length}) --</option>`;
+            sortedKeys.forEach(k => {
+                const isSelected = Array.isArray(activeValue) ? activeValue.includes(k) : k === activeValue;
+                html += `<option value="${k}" ${isSelected ? 'selected' : ''}>${k} (${optionsSet[k]})</option>`;
+            });
+            select.innerHTML = html;
+            const lbl = document.getElementById(`lbl-${col}`);
+            if (lbl && Array.isArray(activeValue)) lbl.innerText = `${col} (${activeValue.length} selecc.)`;
+        }
+
+        function getCurrentFilterState() {
+            let state = { Fecha: document.getElementById('sel-Fecha').value || "Todos" };
+            vColsHierarchy.forEach(col => {
+                const el = document.getElementById(`sel-${col}`);
+                if (!el) return;
+                if (col === "Dependencia") state[col] = Array.from(el.selectedOptions).map(o => o.value).filter(v => v !== "Todos");
+                else state[col] = el.value || "Todos";
+            });
+            return state;
+        }
+
+        function applyFilters() {
+            try {
+                const f = getCurrentFilterState();
+                const fil = rData.filter(d => {
+                    if (f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
+                    return vColsHierarchy.every(col => {
+                        const val = f[col];
+                        if (val === "Todos" || (Array.isArray(val) && val.length === 0)) return true;
+                        const dVal = String(d[col.toLowerCase()] || "N/A");
+                        return Array.isArray(val) ? val.includes(dVal) : dVal === val;
+                    });
+                });
+
+                renderKPIs(fil, f);
+                let palette = paletteDefault;
+                if (f.Estatus === "Positiva") palette = palettePos;
+                else if (f.Estatus === "Negativa") palette = paletteNeg;
+                else if (f.Estatus === "Informativa") palette = paletteInf;
+                renderDashboardCharts(fil, palette);
+                renderTitulares(fil);
+            } catch (ex) {
+                console.error("Error en applyFilters:", ex);
+            }
+        }
+
+        function renderKPIs(data, f) {
+            document.getElementById('kpi-total').innerText = data.length.toLocaleString();
+
+            // Subtítulo de Total Emisiones
+            const subTotal = (f.Dependencia && f.Dependencia.length > 0)
+                ? (f.Dependencia.length > 3 ? `${f.Dependencia.length} seleccionadas` : f.Dependencia.join(', '))
+                : "Todas";
+            document.getElementById('kpi-total-sub').innerText = subTotal;
+
+            // Cálculos para Rendimiento
+            const totalUniqueMedia = new Set(rData.map(d => d.medio || "N/A")).size;
+            const currentUniqueMedia = new Set(data.map(d => d.medio || "N/A")).size;
+            const rendimientoPct = totalUniqueMedia > 0 ? ((currentUniqueMedia / totalUniqueMedia) * 100).toFixed(1) : 0;
+            document.getElementById('kpi-rendimiento').innerText = `${rendimientoPct}%`;
+            document.getElementById('kpi-rendimiento-val').innerText = `${currentUniqueMedia} medios reproducen el comunicado`;
+
+            const getTop = (key) => {
+                const counts = {};
+                data.forEach(d => { const v = d[key.toLowerCase()] || "N/A"; counts[v] = (counts[v] || 0) + 1; });
+                return Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || ["-", 0];
+            };
+
+            const [topDep, countDep] = getTop('Dependencia');
+            document.getElementById('kpi-dep').innerText = topDep;
+            document.getElementById('kpi-dep-val').innerText = `${countDep} menciones`;
+
+            const [topTema, countTema] = getTop('Tema');
+            document.getElementById('kpi-tema').innerText = topTema;
+            document.getElementById('kpi-tema-val').innerText = `${countTema} menciones`;
+
+            const [topMun, countMun] = getTop('Municipio');
+            const displayMun = topMun === "N/A" ? "Estatal" : topMun;
+            document.getElementById('kpi-mun').innerText = displayMun;
+            document.getElementById('kpi-mun-val').innerText = `${countMun} menciones`;
+
+            const [topMed, countMed] = getTop('Medio');
+            const pct = data.length > 0 ? ((countMed / data.length) * 100).toFixed(1) : 0;
+            document.getElementById('kpi-medio').innerText = topMed;
+            document.getElementById('kpi-medio-val').innerText = `${pct}% del total`;
+
+            // Ajustar colores según estatus
+            const cards = document.querySelectorAll('.kpi-card');
+            cards.forEach(c => c.classList.remove('pos', 'inf', 'neg'));
+            if (f.Estatus === "Positiva") cards.forEach(c => c.classList.add('pos'));
+            else if (f.Estatus === "Informativa") cards.forEach(c => c.classList.add('inf'));
+            else if (f.Estatus === "Negativa") cards.forEach(c => c.classList.add('neg'));
+        }
+
+        Chart.register(ChartDataLabels);
+
+        function renderDashboardCharts(data, palette) {
+            const f = getCurrentFilterState();
+            const xLimit = parseInt(document.getElementById('an-x').value) || 10;
+            const xMode = document.getElementById('an-mode').value;
+
+            // Dataset filtrado SOLO por Fecha, Dependencia y Canal para el gráfico de Rendimiento
+            const rendData = rData.filter(d => {
+                if (f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
+                const depVal = f.Dependencia;
+                if (depVal && depVal.length > 0) {
+                    if (!depVal.includes(String(d.dependencia || "N/A"))) return false;
+                }
+                if (f.Canal !== "Todos" && String(d.canal || "N/A") !== f.Canal) return false;
+                return true;
+            });
+
+            // Gráfico de Clave con promedio - Ahora solo responde a Fecha, Dependencia y Canal
+            renderChart('g_clave', rendData, 'id_emision', 'Rendimiento en medios', 'bar_avg', xLimit, xMode);
+
+            // Doughnut de Estatus - ahora responde a todos los filtros
+            renderChart('g_doughnut', data, 'estatus', 'Estatus', 'doughnut', 15, 'top', palette);
+
+            renderSmartTimeline(data);
+
+            renderChart('g_dependencia', data, 'dependencia', 'Impacto por Dependencia', 'bar_stacked', xLimit, xMode);
+            renderChart('g_medio', data, 'medio', 'Impacto por Medio', 'bar_stacked', xLimit, xMode);
+            renderChart('g_tema', data, 'tema', 'Principales Temas', 'bar_stacked', xLimit, xMode);
+            renderChart('g_municipio', data, 'municipio', 'Distribución por Municipio', 'bar_stacked', xLimit, xMode);
+            renderChart('g_organismo', data, 'organismo', 'Volumen por Organismo', 'bar_stacked', xLimit, xMode);
+            renderChart('g_genero', data, 'género', 'Distribución de Género', 'bar_stacked', xLimit, xMode);
+        }
+
+        function renderTitulares(data) {
+            const list = document.getElementById('titulares-list');
+            list.innerHTML = "";
+            if (data.length === 0) {
+                list.innerHTML = "<div style='text-align:center; color:#888; padding:20px;'>No hay registros que mostrar</div>";
                 return;
             }
 
-            initFilterStructure();
-            updateFilters('Estatus');
-            
-            // Mostrar fecha de actualización
-            const now = new Date().toLocaleTimeString();
-            console.log("Dashboard actualizado a las " + now);
-        } catch (e) {
-            console.error("Error cargando datos:", e);
-            dash.innerHTML = `<h2>Error cargando datos: ${e.message}</h2><p>Verifica la conexión a internet o el enlace de Google Sheets.</p>`;
-        }
-    }
-
-    function parseCSV(text) {
-        const lines = text.split(/\r?\n/);
-        if (lines.length < 2) return [];
-        const headerLine = lines[0].replace(/^\uFEFF/, "").split(',');
-        const headers = headerLine.map(h => h.trim().replace(/"/g, '').toLowerCase());
-        
-        // Mapeo flexible para asegurar que encontremos las columnas correctas
-        const keyMap = { 
-            'id': 'id_emision',
-            'id_emision': 'id_emision',
-            'id emisión': 'id_emision',
-            'id emision': 'id_emision',
-            'género': 'género', 
-            'genero': 'género',
-            'estatus': 'estatus',
-            'dependencia': 'dependencia',
-            'canal': 'canal',
-            'canal de medios': 'canal',
-            'medio': 'medio',
-            'municipio': 'municipio',
-            'organismo': 'organismo',
-            'tema': 'tema',
-            'titular': 'titular',
-            'fecha': 'fecha',
-            'clave': 'clave',
-            'cve': 'clave',
-            'clv': 'clave',
-            'clave_emision': 'clave',
-            'clave emision': 'clave'
-        };
-
-        const data = [];
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue;
-            const values = [];
-            let current = '', inQuotes = false;
-            for (let char of line) {
-                if (char === '"') inQuotes = !inQuotes;
-                else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
-                else current += char;
-            }
-            values.push(current.trim());
-            const row = {};
-            headers.forEach((h, idx) => {
-                // Buscar si el header (h) o algo similar está en el keyMap
-                const mappedKey = keyMap[h] || h;
-                row[mappedKey] = (values[idx] || '').replace(/^"|"$/g, '').replace(/""/g, '"').trim();
-            });
-            data.push(row);
-        }
-        return data;
-    }
-
-    function getWeek(date) {
-        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        return `${d.getUTCFullYear()}-W${String(Math.ceil((((d - yearStart) / 86400000) + 1) / 7)).padStart(2, '0')}`;
-    }
-
-    function initFilterStructure() {
-        const container = document.getElementById('f-dynamic-cont');
-        container.innerHTML = "";
-        ["Medio", "Municipio", "Organismo", "Género"].forEach(col => {
-            const div = document.createElement('div');
-            div.className = 'f-group';
-            div.innerHTML = `<label id="lbl-${col}">${col}</label><select id="sel-${col}" onchange="updateFilters()"></select>`;
-            container.appendChild(div);
-        });
-    }
-
-    function updateFilters() {
-        const f = getCurrentFilterState();
-        ["Fecha", ...vColsHierarchy].forEach(col => {
-            const s = document.getElementById(`sel-${col}`);
-            if (!s) return;
-            
-            // Lógica de filtrado cruzado: para cada filtro, mostrar opciones basadas en los DEMÁS filtros activos
-            let sourceItems = rData.filter(d => {
-                // Filtrar por Fecha (siempre se aplica si no es el filtro de Fecha)
-                if (col !== "Fecha" && f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
-                
-                // Filtrar por todos los demás filtros
-                for (let otherCol of vColsHierarchy) {
-                    if (otherCol === col) continue; // No filtrarse a sí mismo
-                    const val = f[otherCol];
-                    if (val === "Todos" || (Array.isArray(val) && val.length === 0)) continue;
-                    
-                    const dVal = String(d[otherCol.toLowerCase()] || "N/A");
-                    if (Array.isArray(val)) {
-                        if (!val.includes(dVal)) return false;
-                    } else {
-                        if (dVal !== val) return false;
-                    }
-                }
-                return true;
-            });
-            renderSelectOptions(s, col, sourceItems, f[col]);
-        });
-        applyFilters();
-    }
-
-    function renderSelectOptions(select, col, items, activeValue) {
-        if (col === "Fecha") {
-            const allDates = [...new Set(rData.map(d => d._month))].sort().reverse();
-            select.innerHTML = `<option value="Todos">-- Todos los meses --</option>` +
-                allDates.map(m => `<option value="${m}" ${m === activeValue ? 'selected' : ''}>${m}</option>`).join('');
-            return;
-        }
-        let optionsSet = {};
-        items.forEach(d => { const v = String(d[col.toLowerCase()] || "N/A"); optionsSet[v] = (optionsSet[v] || 0) + 1; });
-        const sortedKeys = Object.keys(optionsSet).sort((a, b) => optionsSet[b] - optionsSet[a]);
-        let html = `<option value="Todos">-- Todos (${sortedKeys.length}) --</option>`;
-        sortedKeys.forEach(k => {
-            const isSelected = Array.isArray(activeValue) ? activeValue.includes(k) : k === activeValue;
-            html += `<option value="${k}" ${isSelected ? 'selected' : ''}>${k} (${optionsSet[k]})</option>`;
-        });
-        select.innerHTML = html;
-        const lbl = document.getElementById(`lbl-${col}`);
-        if (lbl && Array.isArray(activeValue)) lbl.innerText = `${col} (${activeValue.length} selecc.)`;
-    }
-
-    function getCurrentFilterState() {
-        let state = { Fecha: document.getElementById('sel-Fecha').value || "Todos" };
-        vColsHierarchy.forEach(col => {
-            const el = document.getElementById(`sel-${col}`);
-            if (!el) return;
-            if (col === "Dependencia") state[col] = Array.from(el.selectedOptions).map(o => o.value).filter(v => v !== "Todos");
-            else state[col] = el.value || "Todos";
-        });
-        return state;
-    }
-
-    function applyFilters() {
-        try {
-            const f = getCurrentFilterState();
-            const fil = rData.filter(d => {
-                if (f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
-                return vColsHierarchy.every(col => {
-                    const val = f[col];
-                    if (val === "Todos" || (Array.isArray(val) && val.length === 0)) return true;
-                    const dVal = String(d[col.toLowerCase()] || "N/A");
-                    return Array.isArray(val) ? val.includes(dVal) : dVal === val;
-                });
-            });
-
-            renderKPIs(fil, f);
-            let palette = paletteDefault;
-            if (f.Estatus === "Positiva") palette = palettePos;
-            else if (f.Estatus === "Negativa") palette = paletteNeg;
-            else if (f.Estatus === "Informativa") palette = paletteInf;
-            renderDashboardCharts(fil, palette);
-            renderTitulares(fil);
-        } catch(ex) {
-            console.error("Error en applyFilters:", ex);
-        }
-    }
-
-    function renderKPIs(data, f) {
-        document.getElementById('kpi-total').innerText = data.length.toLocaleString();
-        
-        // Subtítulo de Total Emisiones
-        const subTotal = (f.Dependencia && f.Dependencia.length > 0) 
-            ? (f.Dependencia.length > 3 ? `${f.Dependencia.length} seleccionadas` : f.Dependencia.join(', ')) 
-            : "Todas";
-        document.getElementById('kpi-total-sub').innerText = subTotal;
-
-        // Cálculos para Rendimiento
-        const totalUniqueMedia = new Set(rData.map(d => d.medio || "N/A")).size;
-        const currentUniqueMedia = new Set(data.map(d => d.medio || "N/A")).size;
-        const rendimientoPct = totalUniqueMedia > 0 ? ((currentUniqueMedia / totalUniqueMedia) * 100).toFixed(1) : 0;
-        document.getElementById('kpi-rendimiento').innerText = `${rendimientoPct}%`;
-        document.getElementById('kpi-rendimiento-val').innerText = `${currentUniqueMedia} medios alcanzan el ID`;
-
-        const getTop = (key) => {
-            const counts = {};
-            data.forEach(d => { const v = d[key.toLowerCase()] || "N/A"; counts[v] = (counts[v] || 0) + 1; });
-            return Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || ["-", 0];
-        };
-
-        const [topDep, countDep] = getTop('Dependencia');
-        document.getElementById('kpi-dep').innerText = topDep;
-        document.getElementById('kpi-dep-val').innerText = `${countDep} menciones`;
-
-        const [topTema, countTema] = getTop('Tema');
-        document.getElementById('kpi-tema').innerText = topTema;
-        document.getElementById('kpi-tema-val').innerText = `${countTema} menciones`;
-
-        const [topMun, countMun] = getTop('Municipio');
-        const displayMun = topMun === "N/A" ? "Estatal" : topMun;
-        document.getElementById('kpi-mun').innerText = displayMun;
-        document.getElementById('kpi-mun-val').innerText = `${countMun} menciones`;
-
-        const [topMed, countMed] = getTop('Medio');
-        const pct = data.length > 0 ? ((countMed / data.length) * 100).toFixed(1) : 0;
-        document.getElementById('kpi-medio').innerText = topMed;
-        document.getElementById('kpi-medio-val').innerText = `${pct}% del total`;
-
-        // Ajustar colores según estatus
-        const cards = document.querySelectorAll('.kpi-card');
-        cards.forEach(c => c.classList.remove('pos', 'inf', 'neg'));
-        if (f.Estatus === "Positiva") cards.forEach(c => c.classList.add('pos'));
-        else if (f.Estatus === "Informativa") cards.forEach(c => c.classList.add('inf'));
-        else if (f.Estatus === "Negativa") cards.forEach(c => c.classList.add('neg'));
-    }
-
-    Chart.register(ChartDataLabels);
-
-    function renderDashboardCharts(data, palette) {
-        const f = getCurrentFilterState();
-        const xLimit = parseInt(document.getElementById('an-x').value) || 10;
-        const xMode = document.getElementById('an-mode').value;
-
-        // Dataset filtrado SOLO por Fecha, Dependencia y Canal para el gráfico de Rendimiento
-        const rendData = rData.filter(d => {
-            if (f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
-            const depVal = f.Dependencia;
-            if (depVal && depVal.length > 0) {
-                if (!depVal.includes(String(d.dependencia || "N/A"))) return false;
-            }
-            if (f.Canal !== "Todos" && String(d.canal || "N/A") !== f.Canal) return false;
-            return true;
-        });
-
-        // Gráfico de Clave con promedio - Ahora solo responde a Fecha, Dependencia y Canal
-        renderChart('g_clave', rendData, 'id_emision', 'Rendimiento en medios', 'bar_avg', xLimit, xMode);
-
-        // Doughnut de Estatus - ahora responde a todos los filtros
-        renderChart('g_doughnut', data, 'estatus', 'Estatus', 'doughnut', 15, 'top', palette);
-        
-        renderSmartTimeline(data);
-        
-        renderChart('g_dependencia', data, 'dependencia', 'Impacto por Dependencia', 'bar_stacked', xLimit, xMode);
-        renderChart('g_medio', data, 'medio', 'Impacto por Medio', 'bar_stacked', xLimit, xMode);
-        renderChart('g_tema', data, 'tema', 'Principales Temas', 'bar_stacked', xLimit, xMode);
-        renderChart('g_municipio', data, 'municipio', 'Distribución por Municipio', 'bar_stacked', xLimit, xMode);
-        renderChart('g_organismo', data, 'organismo', 'Volumen por Organismo', 'bar_stacked', xLimit, xMode);
-        renderChart('g_genero', data, 'género', 'Distribución de Género', 'bar_stacked', xLimit, xMode);
-    }
-
-    function renderTitulares(data) {
-        const list = document.getElementById('titulares-list');
-        list.innerHTML = "";
-        if (data.length === 0) {
-            list.innerHTML = "<div style='text-align:center; color:#888; padding:20px;'>No hay registros que mostrar</div>";
-            return;
-        }
-        
-        data.forEach(d => {
-            const card = document.createElement('div');
-            card.style = "background:white; border:1px solid #eee; border-radius:6px; padding:15px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.05);";
-            card.innerHTML = `
+            data.forEach(d => {
+                const card = document.createElement('div');
+                card.style = "background:white; border:1px solid #eee; border-radius:6px; padding:15px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.05);";
+                card.innerHTML = `
                 <div style="font-weight:bold; color:var(--guinda); font-size:14px; margin-bottom:8px;">${d.titular || '(Sin titular)'}</div>
                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; font-size:12px; color:#555;">
                     <div><i class="fa-solid fa-calendar-day" style="color:var(--dorado); width:16px;"></i> <b>Fecha:</b> ${d.fecha}</div>
@@ -480,142 +731,142 @@
                     <div><i class="fa-solid fa-tag" style="color:var(--dorado); width:16px;"></i> <b>Tema:</b> ${d.tema}</div>
                 </div>
             `;
-            list.appendChild(card);
-        });
-    }
-
-    function renderChart(id, dataset, field, title, type, limit = 10, mode = 'top', palette = paletteDefault) {
-        const ctx = document.getElementById(id);
-        if (!ctx) return;
-        const sentiments = ['Positiva', 'Informativa', 'Negativa'];
-        const sentimentColors = { 'Positiva': '#2a9d8f', 'Informativa': '#ffb703', 'Negativa': '#e63946' };
-        let labels = [], datasets = [];
-
-        if (type === 'bar_stacked') {
-            const grouped = {};
-            dataset.forEach(d => {
-                const v = String(d[field] || "N/A");
-                if (!grouped[v]) grouped[v] = { total: 0, Positiva: 0, Informativa: 0, Negativa: 0 };
-                grouped[v].total++;
-                if (sentiments.includes(d.estatus)) grouped[v][d.estatus]++;
+                list.appendChild(card);
             });
-            let sorted = Object.entries(grouped).sort((a, b) => b[1].total - a[1].total);
-            if (mode === 'bottom') sorted = sorted.reverse();
-            const finalData = sorted.slice(0, limit);
-            labels = finalData.map(x => x[0]);
-            sentiments.forEach(s => datasets.push({ label: s, data: finalData.map(x => x[1][s]), backgroundColor: sentimentColors[s], borderWidth: 1 }));
-        } else if (type === 'bar_avg') {
-            // Caso especial: Clave vs cantidad de Medios únicos
-            const grouped = {};
-            dataset.forEach(d => {
-                const v = String(d[field] || "N/A");
-                if (v === "N/A" || !v) return;
-                if (!grouped[v]) grouped[v] = new Set();
-                grouped[v].add(d.medio || "N/A");
-            });
-            let sorted = Object.entries(grouped).map(([k, set]) => [k, set.size]).sort((a, b) => b[1] - a[1]);
-            if (mode === 'bottom') sorted = sorted.reverse();
-            const finalData = sorted.slice(0, limit);
-            labels = finalData.map(x => x[0]);
-            const counts = finalData.map(x => x[1]);
-            const avg = counts.length > 0 ? (counts.reduce((a, b) => a + b, 0) / counts.length) : 0;
-            
-            datasets = [
-                { label: 'Medios', data: counts, backgroundColor: palette[0], borderWidth: 1, type: 'bar' },
-                { label: 'Promedio', data: labels.map(() => avg), borderColor: '#ffb703', borderWidth: 2, type: 'line', pointRadius: 0, borderDash: [5, 5], fill: false }
-            ];
-        } else {
-            const counts = {};
-            dataset.forEach(d => { const v = String(d[field] || "N/A"); counts[v] = (counts[v] || 0) + 1; });
-            let sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-            if (mode === 'bottom' && type === 'bar') sorted = sorted.reverse();
-            const finalData = sorted.slice(0, limit);
-            labels = finalData.map(x => x[0]);
-            let finalPalette = (field === 'estatus') ? labels.map(l => sentimentColors[l] || '#ccc') : palette;
-            datasets = [{ data: finalData.map(x => x[1]), backgroundColor: finalPalette, borderWidth: 1 }];
         }
 
-        if (ctx.parentElement.classList.contains('elastic')) {
-            const newHeight = Math.max(350, labels.length * 35 + 60);
-            Object.assign(ctx.parentElement.style, { height: `${newHeight}px`, minHeight: `${newHeight}px` });
-        }
+        function renderChart(id, dataset, field, title, type, limit = 10, mode = 'top', palette = paletteDefault) {
+            const ctx = document.getElementById(id);
+            if (!ctx) return;
+            const sentiments = ['Positiva', 'Informativa', 'Negativa'];
+            const sentimentColors = { 'Positiva': '#2a9d8f', 'Informativa': '#ffb703', 'Negativa': '#e63946' };
+            let labels = [], datasets = [];
 
-        if (vCharts[id]) vCharts[id].destroy();
-        vCharts[id] = new Chart(ctx, {
-            type: type.startsWith('bar') ? 'bar' : type,
-            data: { labels, datasets },
-            options: {
-                indexAxis: type.includes('bar') ? 'y' : 'x',
-                plugins: {
-                    title: { display: true, text: title, color: '#611232', font: { size: 14, weight: 'bold' } },
-                    legend: { display: type !== 'bar', position: 'right' },
-                    datalabels: {
-                        color: (c) => type === 'bar_stacked' ? '#fff' : (type.includes('bar') ? '#444' : '#fff'),
-                        anchor: (c) => type === 'bar_stacked' ? 'center' : (type.includes('bar') ? 'end' : 'center'),
-                        align: (c) => type === 'bar_stacked' ? 'center' : (type.includes('bar') ? 'end' : 'center'),
-                        offset: type.includes('bar') && type !== 'bar_stacked' ? 4 : 0,
-                        font: { weight: 'bold', size: 11 },
-                        formatter: (val, context) => {
-                            if (id === 'g_doughnut') {
-                                const sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                const pct = (val / sum) * 100;
-                                return pct < 5 ? '' : pct.toFixed(0) + '%';
+            if (type === 'bar_stacked') {
+                const grouped = {};
+                dataset.forEach(d => {
+                    const v = String(d[field] || "N/A");
+                    if (!grouped[v]) grouped[v] = { total: 0, Positiva: 0, Informativa: 0, Negativa: 0 };
+                    grouped[v].total++;
+                    if (sentiments.includes(d.estatus)) grouped[v][d.estatus]++;
+                });
+                let sorted = Object.entries(grouped).sort((a, b) => b[1].total - a[1].total);
+                if (mode === 'bottom') sorted = sorted.reverse();
+                const finalData = sorted.slice(0, limit);
+                labels = finalData.map(x => x[0]);
+                sentiments.forEach(s => datasets.push({ label: s, data: finalData.map(x => x[1][s]), backgroundColor: sentimentColors[s], borderWidth: 1 }));
+            } else if (type === 'bar_avg') {
+                // Caso especial: Clave vs cantidad de Medios únicos
+                const grouped = {};
+                dataset.forEach(d => {
+                    const v = String(d[field] || "N/A");
+                    if (v === "N/A" || !v) return;
+                    if (!grouped[v]) grouped[v] = new Set();
+                    grouped[v].add(d.medio || "N/A");
+                });
+                let sorted = Object.entries(grouped).map(([k, set]) => [k, set.size]).sort((a, b) => b[1] - a[1]);
+                if (mode === 'bottom') sorted = sorted.reverse();
+                const finalData = sorted.slice(0, limit);
+                labels = finalData.map(x => x[0]);
+                const counts = finalData.map(x => x[1]);
+                const avg = counts.length > 0 ? (counts.reduce((a, b) => a + b, 0) / counts.length) : 0;
+
+                datasets = [
+                    { label: 'Medios', data: counts, backgroundColor: palette[0], borderWidth: 1, type: 'bar' },
+                    { label: 'Promedio', data: labels.map(() => avg), borderColor: '#ffb703', borderWidth: 2, type: 'line', pointRadius: 0, borderDash: [5, 5], fill: false }
+                ];
+            } else {
+                const counts = {};
+                dataset.forEach(d => { const v = String(d[field] || "N/A"); counts[v] = (counts[v] || 0) + 1; });
+                let sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+                if (mode === 'bottom' && type === 'bar') sorted = sorted.reverse();
+                const finalData = sorted.slice(0, limit);
+                labels = finalData.map(x => x[0]);
+                let finalPalette = (field === 'estatus') ? labels.map(l => sentimentColors[l] || '#ccc') : palette;
+                datasets = [{ data: finalData.map(x => x[1]), backgroundColor: finalPalette, borderWidth: 1 }];
+            }
+
+            if (ctx.parentElement.classList.contains('elastic')) {
+                const newHeight = Math.max(350, labels.length * 35 + 60);
+                Object.assign(ctx.parentElement.style, { height: `${newHeight}px`, minHeight: `${newHeight}px` });
+            }
+
+            if (vCharts[id]) vCharts[id].destroy();
+            vCharts[id] = new Chart(ctx, {
+                type: type.startsWith('bar') ? 'bar' : type,
+                data: { labels, datasets },
+                options: {
+                    indexAxis: type.includes('bar') ? 'y' : 'x',
+                    plugins: {
+                        title: { display: true, text: title, color: '#611232', font: { size: 14, weight: 'bold' } },
+                        legend: { display: type !== 'bar', position: 'right' },
+                        datalabels: {
+                            color: (c) => type === 'bar_stacked' ? '#fff' : (type.includes('bar') ? '#444' : '#fff'),
+                            anchor: (c) => type === 'bar_stacked' ? 'center' : (type.includes('bar') ? 'end' : 'center'),
+                            align: (c) => type === 'bar_stacked' ? 'center' : (type.includes('bar') ? 'end' : 'center'),
+                            offset: type.includes('bar') && type !== 'bar_stacked' ? 4 : 0,
+                            font: { weight: 'bold', size: 11 },
+                            formatter: (val, context) => {
+                                if (id === 'g_doughnut') {
+                                    const sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    const pct = (val / sum) * 100;
+                                    return pct < 5 ? '' : pct.toFixed(0) + '%';
+                                }
+                                return type === 'bar_stacked' ? (val > 0 ? val : '') : val.toLocaleString();
                             }
-                            return type === 'bar_stacked' ? (val > 0 ? val : '') : val.toLocaleString();
                         }
-                    }
-                },
-                maintainAspectRatio: false,
-                layout: { padding: { right: type.includes('bar') && type !== 'bar_stacked' ? 40 : 10 } },
-                scales: type.includes('bar') ? { x: { stacked: type === 'bar_stacked', beginAtZero: true }, y: { stacked: type === 'bar_stacked' } } : {}
-            }
-        });
-    }
+                    },
+                    maintainAspectRatio: false,
+                    layout: { padding: { right: type.includes('bar') && type !== 'bar_stacked' ? 40 : 10 } },
+                    scales: type.includes('bar') ? { x: { stacked: type === 'bar_stacked', beginAtZero: true }, y: { stacked: type === 'bar_stacked' } } : {}
+                }
+            });
+        }
 
-    function renderSmartTimeline(data) {
-        const ctx = document.getElementById('g_timeline');
-        if (!ctx || data.length === 0) return;
-        const dates = data.map(d => d._date).sort((a, b) => a - b);
-        const diffDays = (dates[dates.length - 1] - dates[0]) / (1000 * 60 * 60 * 24);
-        let groupKey = '_month', labelKey = '_monthLabel', title = "Seguimiento Mensual";
-        if (diffDays < 15) { groupKey = 'fecha'; labelKey = '_dayLabel'; title = "Seguimiento Diario"; }
-        else if (diffDays <= 180) { groupKey = '_week'; labelKey = '_week'; title = "Seguimiento Semanal"; }
+        function renderSmartTimeline(data) {
+            const ctx = document.getElementById('g_timeline');
+            if (!ctx || data.length === 0) return;
+            const dates = data.map(d => d._date).sort((a, b) => a - b);
+            const diffDays = (dates[dates.length - 1] - dates[0]) / (1000 * 60 * 60 * 24);
+            let groupKey = '_month', labelKey = '_monthLabel', title = "Seguimiento Mensual";
+            if (diffDays < 15) { groupKey = 'fecha'; labelKey = '_dayLabel'; title = "Seguimiento Diario"; }
+            else if (diffDays <= 180) { groupKey = '_week'; labelKey = '_week'; title = "Seguimiento Semanal"; }
 
-        const counts = {};
-        data.forEach(d => {
-            const k = d[groupKey];
-            if (!counts[k]) counts[k] = { label: d[labelKey], val: 0 };
-            counts[k].val++;
-        });
-        const sorted = Object.keys(counts).sort();
-        if (vCharts['g_timeline']) vCharts['g_timeline'].destroy();
-        vCharts['g_timeline'] = new Chart(ctx, {
-            type: 'line',
-            data: { labels: sorted.map(k => counts[k].label), datasets: [{ label: 'Emisiones', data: sorted.map(k => counts[k].val), borderColor: '#611232', backgroundColor: 'rgba(97, 18, 50, 0.1)', fill: true, tension: 0.3 }] },
-            options: {
-                plugins: {
-                    title: { display: true, text: title, color: '#611232', font: { size: 15, weight: 'bold' } },
-                    datalabels: { color: '#611232', anchor: 'end', align: 'top', offset: 5, font: { weight: 'bold', size: 11 }, formatter: (val) => val.toLocaleString() }
-                },
-                maintainAspectRatio: false, scales: { y: { beginAtZero: true } }
-            }
-        });
-    }
+            const counts = {};
+            data.forEach(d => {
+                const k = d[groupKey];
+                if (!counts[k]) counts[k] = { label: d[labelKey], val: 0 };
+                counts[k].val++;
+            });
+            const sorted = Object.keys(counts).sort();
+            if (vCharts['g_timeline']) vCharts['g_timeline'].destroy();
+            vCharts['g_timeline'] = new Chart(ctx, {
+                type: 'line',
+                data: { labels: sorted.map(k => counts[k].label), datasets: [{ label: 'Emisiones', data: sorted.map(k => counts[k].val), borderColor: '#611232', backgroundColor: 'rgba(97, 18, 50, 0.1)', fill: true, tension: 0.3 }] },
+                options: {
+                    plugins: {
+                        title: { display: true, text: title, color: '#611232', font: { size: 15, weight: 'bold' } },
+                        datalabels: { color: '#611232', anchor: 'end', align: 'top', offset: 5, font: { weight: 'bold', size: 11 }, formatter: (val) => val.toLocaleString() }
+                    },
+                    maintainAspectRatio: false, scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
 
-    function toggleSidebar() {
-        const sb = document.getElementById('sidebar');
-        const btn = document.getElementById('toggle-btn');
-        sb.classList.toggle('collapsed');
-        btn.innerHTML = sb.classList.contains('collapsed') ? "▶" : "◀";
-        setTimeout(() => Object.values(vCharts).forEach(c => c.resize()), 310);
-    }
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const btn = document.getElementById('toggle-btn');
+            sb.classList.toggle('collapsed');
+            btn.innerHTML = sb.classList.contains('collapsed') ? "▶" : "◀";
+            setTimeout(() => Object.values(vCharts).forEach(c => c.resize()), 310);
+        }
 
-    function genPDF() {
-        const f = getCurrentFilterState();
-        const summary = document.createElement('div');
-        summary.style = "padding: 30px; border-bottom: 2px solid #611232; margin-bottom: 25px; font-family: 'Segoe UI', sans-serif;";
-        const depLabel = f.Dependencia.length > 0 ? (f.Dependencia.length > 5 ? `${f.Dependencia.length} selecc.` : f.Dependencia.join(', ')) : "Todas";
-        summary.innerHTML = `
+        function genPDF() {
+            const f = getCurrentFilterState();
+            const summary = document.createElement('div');
+            summary.style = "padding: 30px; border-bottom: 2px solid #611232; margin-bottom: 25px; font-family: 'Segoe UI', sans-serif;";
+            const depLabel = f.Dependencia.length > 0 ? (f.Dependencia.length > 5 ? `${f.Dependencia.length} selecc.` : f.Dependencia.join(', ')) : "Todas";
+            summary.innerHTML = `
             <h1 style="color: #611232; margin: 0 0 15px 0; font-size: 28px;">Reporte de Comunicados</h1>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; font-size: 15px;">
                 <div><strong>Estatus:</strong> ${f.Estatus}</div>
@@ -623,15 +874,16 @@
                 <div><strong>Dependencia(s):</strong> ${depLabel}</div>
                 <div><strong>Total Registros:</strong> ${document.getElementById('kpi-total').innerText}</div>
             </div>`;
-        const element = document.getElementById('dash').cloneNode(true);
-        const wrapper = document.createElement('div');
-        wrapper.style.padding = "10px";
-        wrapper.appendChild(summary);
-        wrapper.appendChild(element);
-        html2pdf().set({ margin: 0.4, filename: `Reporte_Comunicados_${f.Fecha}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } }).from(wrapper).save();
-    }
+            const element = document.getElementById('dash').cloneNode(true);
+            const wrapper = document.createElement('div');
+            wrapper.style.padding = "10px";
+            wrapper.appendChild(summary);
+            wrapper.appendChild(element);
+            html2pdf().set({ margin: 0.4, filename: `Reporte_Comunicados_${f.Fecha}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } }).from(wrapper).save();
+        }
 
-    window.onload = start;
-</script>
+        window.onload = start;
+    </script>
 </body>
+
 </html>
