@@ -28,11 +28,14 @@
 
         .content { flex:1; padding:24px; overflow-y:auto; display:flex; flex-direction:column; gap:24px; }
 
-        .kpi-container { display:grid; grid-template-columns:repeat(4,1fr); gap:15px; }
-        .kpi-card { background:white; border-radius:8px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.08); border-left:5px solid var(--guinda); display:flex; flex-direction:column; justify-content:center; }
-        .kpi-card h4 { margin:0; font-size:13px; color:#666; text-transform:uppercase; letter-spacing:.5px; }
-        .kpi-card .val { font-size:24px; font-weight:bold; color:var(--guinda); margin-top:5px; }
-        .kpi-card .sub { font-size:11px; color:#888; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .kpi-container { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
+        .kpi-card { background:white; border-radius:8px; padding:15px; box-shadow:0 2px 8px rgba(0,0,0,.08); border-left:5px solid var(--guinda); display:flex; flex-direction:column; justify-content:center; transition: border-color .3s ease; }
+        .kpi-card.pos { border-left-color: #2a9d8f!important; }
+        .kpi-card.inf { border-left-color: #ffb703!important; }
+        .kpi-card.neg { border-left-color: #e63946!important; }
+        .kpi-card h4 { margin:0; font-size:11px; color:#666; text-transform:uppercase; letter-spacing:.5px; }
+        .kpi-card .val { font-size:20px; font-weight:bold; color:var(--guinda); margin-top:5px; }
+        .kpi-card .sub { font-size:10px; color:#888; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
         .charts-row { display:grid; grid-template-columns:1fr 2fr; gap:24px; }
         .charts-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:24px; }
@@ -84,23 +87,23 @@
             <div id="f-cont">
                 <div class="f-group">
                     <label id="lbl-Estatus">Estatus</label>
-                    <select id="sel-Estatus" onchange="updateFilters('Estatus')"></select>
+                    <select id="sel-Estatus" onchange="updateFilters()"></select>
                 </div>
                 <div class="f-group">
                     <label id="lbl-Fecha">Rango de Fecha</label>
-                    <select id="sel-Fecha" onchange="applyFilters()"></select>
-                </div>
-                <div class="f-group">
-                    <label id="lbl-ID_Emision">ID</label>
-                    <select id="sel-ID_Emision" onchange="updateFilters('ID_Emision')"></select>
+                    <select id="sel-Fecha" onchange="updateFilters()"></select>
                 </div>
                 <div class="f-group">
                     <label id="lbl-Dependencia">Dependencia</label>
-                    <select id="sel-Dependencia" multiple onchange="applyFilters()"></select>
+                    <select id="sel-Dependencia" multiple onchange="updateFilters()"></select>
+                </div>
+                <div class="f-group">
+                    <label id="lbl-ID_Emision">ID</label>
+                    <select id="sel-ID_Emision" onchange="updateFilters()"></select>
                 </div>
                 <div class="f-group">
                     <label id="lbl-Canal">Canal</label>
-                    <select id="sel-Canal" onchange="applyFilters()"></select>
+                    <select id="sel-Canal" onchange="updateFilters()"></select>
                 </div>
                 <div id="f-dynamic-cont"></div>
             </div>
@@ -111,13 +114,16 @@
 
         <div class="content" id="dash">
             <div class="kpi-container">
-                <div class="kpi-card"><h4>Total Emisiones</h4><div class="val" id="kpi-total">0</div><div class="sub" id="kpi-total-sub">Universo filtrado</div></div>
-                <div class="kpi-card"><h4>Top Dependencia</h4><div class="val" id="kpi-dep">-</div><div class="sub" id="kpi-dep-val">0 menciones</div></div>
-                <div class="kpi-card"><h4>Top Municipio</h4><div class="val" id="kpi-mun">-</div><div class="sub" id="kpi-mun-val">0 menciones</div></div>
-                <div class="kpi-card"><h4>Medio Principal</h4><div class="val" id="kpi-medio">-</div><div class="sub" id="kpi-medio-val">0% del total</div></div>
+                <div class="kpi-card" id="card-rendimiento"><h4>Rendimiento</h4><div class="val" id="kpi-rendimiento">0%</div><div class="sub" id="kpi-rendimiento-val">0 medios</div></div>
+                <div class="kpi-card" id="card-total"><h4>Total Emisiones</h4><div class="val" id="kpi-total">0</div><div class="sub" id="kpi-total-sub">Todas</div></div>
+                <div class="kpi-card" id="card-dep"><h4>Top Dependencia</h4><div class="val" id="kpi-dep">-</div><div class="sub" id="kpi-dep-val">0 menciones</div></div>
+                <div class="kpi-card" id="card-tema"><h4>Top Tema</h4><div class="val" id="kpi-tema">-</div><div class="sub" id="kpi-tema-val">0 menciones</div></div>
+                <div class="kpi-card" id="card-mun"><h4>Top Municipio</h4><div class="val" id="kpi-mun">-</div><div class="sub" id="kpi-mun-val">0 menciones</div></div>
+                <div class="kpi-card" id="card-medio"><h4>Medio Principal</h4><div class="val" id="kpi-medio">-</div><div class="sub" id="kpi-medio-val">0% del total</div></div>
             </div>
 
             <div class="charts-row">
+                <div class="card full elastic"><canvas id="g_clave"></canvas></div>
                 <div class="card"><canvas id="g_doughnut"></canvas></div>
                 <div class="card"><canvas id="g_timeline"></canvas></div>
             </div>
@@ -147,7 +153,7 @@
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTlpktxpGxd__D3mJ4os7JSQOhBrtU6m4IeCX23GpHlI5e5U4l27kKtoDSggw3niY8lqZcL_rCHV8Q/pub?gid=0&single=true&output=csv';
     let rData = [];
     let vCharts = {};
-    const vColsHierarchy = ["Estatus", "ID_Emision", "Dependencia", "Canal", "Medio", "Municipio", "Organismo", "Género"];
+    const vColsHierarchy = ["Estatus", "Dependencia", "ID_Emision", "Canal", "Medio", "Municipio", "Organismo", "Género"];
     const paletteDefault = ['#611232', '#A57F2C', '#7E183B', '#D4AF37', '#4D4D4D', '#C0C0C0', '#800000', '#B8860B', '#808080', '#2a9d8f', '#ffb703', '#e63946'];
     const palettePos = ['#2a9d8f', '#264653', '#2a9d8fbb', '#1d6f66', '#a7c957', '#386641'];
     const paletteNeg = ['#e63946', '#d62828', '#e63946bb', '#9d0208', '#6a040f', '#370617'];
@@ -236,7 +242,12 @@
             'organismo': 'organismo',
             'tema': 'tema',
             'titular': 'titular',
-            'fecha': 'fecha'
+            'fecha': 'fecha',
+            'clave': 'clave',
+            'cve': 'clave',
+            'clv': 'clave',
+            'clave_emision': 'clave',
+            'clave emision': 'clave'
         };
 
         const data = [];
@@ -275,25 +286,34 @@
         ["Medio", "Municipio", "Organismo", "Género"].forEach(col => {
             const div = document.createElement('div');
             div.className = 'f-group';
-            div.innerHTML = `<label id="lbl-${col}">${col}</label><select id="sel-${col}" onchange="applyFilters()"></select>`;
+            div.innerHTML = `<label id="lbl-${col}">${col}</label><select id="sel-${col}" onchange="updateFilters()"></select>`;
             container.appendChild(div);
         });
     }
 
-    function updateFilters(changedCol) {
+    function updateFilters() {
         const f = getCurrentFilterState();
         ["Fecha", ...vColsHierarchy].forEach(col => {
             const s = document.getElementById(`sel-${col}`);
             if (!s) return;
+            
+            // Lógica de filtrado cruzado: para cada filtro, mostrar opciones basadas en los DEMÁS filtros activos
             let sourceItems = rData.filter(d => {
+                // Filtrar por Fecha (siempre se aplica si no es el filtro de Fecha)
                 if (col !== "Fecha" && f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
-                for (let i = 0; i < vColsHierarchy.indexOf(col); i++) {
-                    const prevCol = vColsHierarchy[i];
-                    const val = f[prevCol];
+                
+                // Filtrar por todos los demás filtros
+                for (let otherCol of vColsHierarchy) {
+                    if (otherCol === col) continue; // No filtrarse a sí mismo
+                    const val = f[otherCol];
                     if (val === "Todos" || (Array.isArray(val) && val.length === 0)) continue;
-                    const dVal = String(d[prevCol.toLowerCase()] || "N/A");
-                    if (Array.isArray(val)) { if (!val.includes(dVal)) return false; }
-                    else if (dVal !== val) return false;
+                    
+                    const dVal = String(d[otherCol.toLowerCase()] || "N/A");
+                    if (Array.isArray(val)) {
+                        if (!val.includes(dVal)) return false;
+                    } else {
+                        if (dVal !== val) return false;
+                    }
                 }
                 return true;
             });
@@ -361,11 +381,18 @@
     function renderKPIs(data, f) {
         document.getElementById('kpi-total').innerText = data.length.toLocaleString();
         
-        // Subtítulo de Total Emisiones con la dependencia elegida
+        // Subtítulo de Total Emisiones
         const subTotal = (f.Dependencia && f.Dependencia.length > 0) 
             ? (f.Dependencia.length > 3 ? `${f.Dependencia.length} seleccionadas` : f.Dependencia.join(', ')) 
             : "Todas";
         document.getElementById('kpi-total-sub').innerText = subTotal;
+
+        // Cálculos para Rendimiento
+        const totalUniqueMedia = new Set(rData.map(d => d.medio || "N/A")).size;
+        const currentUniqueMedia = new Set(data.map(d => d.medio || "N/A")).size;
+        const rendimientoPct = totalUniqueMedia > 0 ? ((currentUniqueMedia / totalUniqueMedia) * 100).toFixed(1) : 0;
+        document.getElementById('kpi-rendimiento').innerText = `${rendimientoPct}%`;
+        document.getElementById('kpi-rendimiento-val').innerText = `${currentUniqueMedia} medios alcanzan el ID`;
 
         const getTop = (key) => {
             const counts = {};
@@ -377,8 +404,11 @@
         document.getElementById('kpi-dep').innerText = topDep;
         document.getElementById('kpi-dep-val').innerText = `${countDep} menciones`;
 
+        const [topTema, countTema] = getTop('Tema');
+        document.getElementById('kpi-tema').innerText = topTema;
+        document.getElementById('kpi-tema-val').innerText = `${countTema} menciones`;
+
         const [topMun, countMun] = getTop('Municipio');
-        // Si es N/A cambiar por Estatal
         const displayMun = topMun === "N/A" ? "Estatal" : topMun;
         document.getElementById('kpi-mun').innerText = displayMun;
         document.getElementById('kpi-mun-val').innerText = `${countMun} menciones`;
@@ -387,17 +417,40 @@
         const pct = data.length > 0 ? ((countMed / data.length) * 100).toFixed(1) : 0;
         document.getElementById('kpi-medio').innerText = topMed;
         document.getElementById('kpi-medio-val').innerText = `${pct}% del total`;
+
+        // Ajustar colores según estatus
+        const cards = document.querySelectorAll('.kpi-card');
+        cards.forEach(c => c.classList.remove('pos', 'inf', 'neg'));
+        if (f.Estatus === "Positiva") cards.forEach(c => c.classList.add('pos'));
+        else if (f.Estatus === "Informativa") cards.forEach(c => c.classList.add('inf'));
+        else if (f.Estatus === "Negativa") cards.forEach(c => c.classList.add('neg'));
     }
 
     Chart.register(ChartDataLabels);
 
     function renderDashboardCharts(data, palette) {
+        const f = getCurrentFilterState();
+        const xLimit = parseInt(document.getElementById('an-x').value) || 10;
+        const xMode = document.getElementById('an-mode').value;
+
+        // Dataset filtrado SOLO por Fecha, Dependencia y Canal para el gráfico de Rendimiento
+        const rendData = rData.filter(d => {
+            if (f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
+            const depVal = f.Dependencia;
+            if (depVal && depVal.length > 0) {
+                if (!depVal.includes(String(d.dependencia || "N/A"))) return false;
+            }
+            if (f.Canal !== "Todos" && String(d.canal || "N/A") !== f.Canal) return false;
+            return true;
+        });
+
+        // Gráfico de Clave con promedio - Ahora solo responde a Fecha, Dependencia y Canal
+        renderChart('g_clave', rendData, 'id_emision', 'Rendimiento en medios', 'bar_avg', xLimit, xMode);
+
         // Doughnut de Estatus - ahora responde a todos los filtros
         renderChart('g_doughnut', data, 'estatus', 'Estatus', 'doughnut', 15, 'top', palette);
         
         renderSmartTimeline(data);
-        const xLimit = parseInt(document.getElementById('an-x').value) || 10;
-        const xMode = document.getElementById('an-mode').value;
         
         renderChart('g_dependencia', data, 'dependencia', 'Impacto por Dependencia', 'bar_stacked', xLimit, xMode);
         renderChart('g_medio', data, 'medio', 'Impacto por Medio', 'bar_stacked', xLimit, xMode);
@@ -451,6 +504,26 @@
             const finalData = sorted.slice(0, limit);
             labels = finalData.map(x => x[0]);
             sentiments.forEach(s => datasets.push({ label: s, data: finalData.map(x => x[1][s]), backgroundColor: sentimentColors[s], borderWidth: 1 }));
+        } else if (type === 'bar_avg') {
+            // Caso especial: Clave vs cantidad de Medios únicos
+            const grouped = {};
+            dataset.forEach(d => {
+                const v = String(d[field] || "N/A");
+                if (v === "N/A" || !v) return;
+                if (!grouped[v]) grouped[v] = new Set();
+                grouped[v].add(d.medio || "N/A");
+            });
+            let sorted = Object.entries(grouped).map(([k, set]) => [k, set.size]).sort((a, b) => b[1] - a[1]);
+            if (mode === 'bottom') sorted = sorted.reverse();
+            const finalData = sorted.slice(0, limit);
+            labels = finalData.map(x => x[0]);
+            const counts = finalData.map(x => x[1]);
+            const avg = counts.length > 0 ? (counts.reduce((a, b) => a + b, 0) / counts.length) : 0;
+            
+            datasets = [
+                { label: 'Medios', data: counts, backgroundColor: palette[0], borderWidth: 1, type: 'bar' },
+                { label: 'Promedio', data: labels.map(() => avg), borderColor: '#ffb703', borderWidth: 2, type: 'line', pointRadius: 0, borderDash: [5, 5], fill: false }
+            ];
         } else {
             const counts = {};
             dataset.forEach(d => { const v = String(d[field] || "N/A"); counts[v] = (counts[v] || 0) + 1; });
