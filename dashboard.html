@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard · Trazabilidad de Comunicados</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary:   #611232; /* Guinda */
+            --secondary: #A57F2C; /* Dorado */
+            --danger:    #d90000;
+            --bg:        #f8f9fa;
+            --card:      #ffffff;
+            --border:    #e0e0e0;
+            --muted:     #6b7280;
+            --radius:    8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Montserrat', 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            color: var(--primary);
+            padding: 24px;
+            letter-spacing: -0.2px;
+        }
+
+        /* ── HEADER ── */
+        header {
+            background: var(--card);
+            border-top: 5px solid var(--primary);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.06);
+        }
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background .2s;
+        }
+        .btn-back:hover { background: var(--secondary); }
+        .btn-reset {
+            padding: 10px 18px;
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-reset:hover { background: #a10000; }
+
+        /* ── FILTROS ── */
+        .filters-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.06);
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 14px;
+            align-items: end;
+        }
+        .filter-item { display: flex; flex-direction: column; gap: 5px; }
+        .filter-item label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--muted);
+            letter-spacing: .5px;
+        }
+        .filter-item input[type="date"],
+        .filter-item input[type="text"] {
+            padding: 8px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            color: var(--primary);
+            background: #fff;
+            transition: border .2s;
+        }
+        .filter-item input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* multiselect */
+        .ms-wrap { position: relative; }
+        .ms-toggle {
+            padding: 8px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 4px;
+            background: #fff;
+            font-family: inherit;
+            font-size: 0.88rem;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ms-toggle::after { content: '▾'; font-size: .7rem; margin-left: 6px; flex-shrink: 0; }
+        .ms-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 2px);
+            left: 0; right: 0;
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 4px;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 200;
+            box-shadow: 0 4px 12px rgba(0,0,0,.1);
+        }
+        .ms-dropdown.open { display: block; }
+        .ms-opt {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .ms-opt:hover { background: var(--bg); }
+        .ms-opt input[type="checkbox"] { accent-color: var(--primary); cursor: pointer; }
+
+        /* ── KPIs ── */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .kpi-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,.06);
+        }
+        .kpi-card.danger  { border-left-color: var(--danger); }
+        .kpi-card.accent2 { border-left-color: #2563eb; }
+        .kpi-card.accent3 { border-left-color: #059669; }
+        .kpi-label { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 8px; }
+        .kpi-value { font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1; }
+        .kpi-value.sm { font-size: 1.05rem; }
+
+        /* ── GRÁFICAS ── */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .chart-box {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.06);
+        }
+        .chart-box.full { grid-column: span 2; }
+        .chart-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 16px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+        /* canvas wrapper with fixed height */
+        .canvas-wrap { position: relative; height: 320px; }
+        .canvas-wrap.tall { height: 420px; }
+
+        /* empty state */
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 320px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 900px) {
+            .charts-grid { grid-template-columns: 1fr; }
+            .chart-box.full { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1><i class="fa-solid fa-chart-pie"></i> Dashboard de Comunicados</h1>
+    <a href="index.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Volver al Registro</a>
+</header>
+
+<!-- FILTROS -->
+<div class="filters-section">
+    <div class="filters-grid">
+        <div class="filter-item">
+            <label>Desde</label>
+            <input type="date" id="f-desde" onchange="applyFilters()">
+        </div>
+        <div class="filter-item">
+            <label>Hasta</label>
+            <input type="date" id="f-hasta" onchange="applyFilters()">
+        </div>
+        <div class="filter-item">
+            <label>Dependencia</label>
+            <div class="ms-wrap">
+                <div class="ms-toggle" id="t-dependencia" onclick="toggleMS('dependencia')">Todas</div>
+                <div class="ms-dropdown" id="d-dependencia"></div>
+            </div>
+        </div>
+        <div class="filter-item">
+            <label>Medio</label>
+            <div class="ms-wrap">
+                <div class="ms-toggle" id="t-medio" onclick="toggleMS('medio')">Todos</div>
+                <div class="ms-dropdown" id="d-medio"></div>
+            </div>
+        </div>
+        <div class="filter-item">
+            <label>Género</label>
+            <div class="ms-wrap">
+                <div class="ms-toggle" id="t-genero" onclick="toggleMS('genero')">Todos</div>
+                <div class="ms-dropdown" id="d-genero"></div>
+            </div>
+        </div>
+        <div class="filter-item">
+            <label>Estatus</label>
+            <div class="ms-wrap">
+                <div class="ms-toggle" id="t-estatus" onclick="toggleMS('estatus')">Todos</div>
+                <div class="ms-dropdown" id="d-estatus"></div>
+            </div>
+        </div>
+        <div class="filter-item">
+            <label>Municipio</label>
+            <div class="ms-wrap">
+                <div class="ms-toggle" id="t-municipio" onclick="toggleMS('municipio')">Todos</div>
+                <div class="ms-dropdown" id="d-municipio"></div>
+            </div>
+        </div>
+        <div class="filter-item">
+            <label>Organismo</label>
+            <div class="ms-wrap">
+                <div class="ms-toggle" id="t-organismo" onclick="toggleMS('organismo')">Todos</div>
+                <div class="ms-dropdown" id="d-organismo"></div>
+            </div>
+        </div>
+        <div class="filter-item">
+            <label>Usuario</label>
+            <div class="ms-wrap">
+                <div class="ms-toggle" id="t-usuario" onclick="toggleMS('usuario')">Todos</div>
+                <div class="ms-dropdown" id="d-usuario"></div>
+            </div>
+        </div>
+        <div class="filter-item">
+            <label>Buscar titular</label>
+            <input type="text" id="f-search" placeholder="Buscar..." oninput="applyFilters()">
+        </div>
+        <div class="filter-item" style="justify-content:flex-end;">
+            <button class="btn-reset" onclick="resetFilters()"><i class="fa-solid fa-rotate-left"></i> Resetear</button>
+        </div>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Total emisiones</div>
+        <div class="kpi-value" id="kpi-total">0</div>
+    </div>
+    <div class="kpi-card accent2">
+        <div class="kpi-label">Top dependencia</div>
+        <div class="kpi-value sm" id="kpi-dep">—</div>
+    </div>
+    <div class="kpi-card accent3">
+        <div class="kpi-label">Top medio</div>
+        <div class="kpi-value sm" id="kpi-medio">—</div>
+    </div>
+    <div class="kpi-card danger">
+        <div class="kpi-label">Estatus positivo</div>
+        <div class="kpi-value" id="kpi-pos">0%</div>
+    </div>
+</div>
+
+<!-- GRÁFICAS -->
+<div class="charts-grid">
+    <div class="chart-box">
+        <div class="chart-title">Emisiones por Género</div>
+        <div class="canvas-wrap"><canvas id="cGenero"></canvas></div>
+    </div>
+    <div class="chart-box">
+        <div class="chart-title">Emisiones por Estatus</div>
+        <div class="canvas-wrap"><canvas id="cEstatus"></canvas></div>
+    </div>
+    <div class="chart-box full">
+        <div class="chart-title">Emisiones por Dependencia</div>
+        <div class="canvas-wrap tall"><canvas id="cDependencia"></canvas></div>
+    </div>
+    <div class="chart-box full">
+        <div class="chart-title">Top 10 Medios</div>
+        <div class="canvas-wrap tall"><canvas id="cMedio"></canvas></div>
+    </div>
+    <div class="chart-box full">
+        <div class="chart-title">Evolución de Emisiones por Fecha</div>
+        <div class="canvas-wrap"><canvas id="cEvolucion"></canvas></div>
+    </div>
+</div>
+
+<script>
+// ── PALETA ──────────────────────────────────────────────
+const PAL = [
+    '#611232', '#A57F2C', '#7E183B', '#D4AF37', 
+    '#4D4D4D', '#C0C0C0', '#800000', '#B8860B', 
+    '#808080', '#2a9d8f', '#ffb703', '#e63946'
+];
+
+// ── FUENTE GLOBAL DE CHART.JS ──────────────────────────
+Chart.defaults.font.family = "'Montserrat','Helvetica Neue',sans-serif";
+Chart.defaults.font.weight = '600';
+Chart.defaults.color = '#611232';
+
+// ── ESTADO ─────────────────────────────────────────────
+let allData = [];
+let filteredData = [];
+let chartInstances = {};
+const sel = {
+    dependencia: [], medio: [], genero: [],
+    estatus: [], municipio: [], organismo: [], usuario: []
+};
+
+// ── CARGA DE DATOS ─────────────────────────────────────
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTlpktxpGxd__D3mJ4os7JSQOhBrtU6m4IeCX23GpHlI5e5U4l27kKtoDSggw3niY8lqZcL_rCHV8Q/pub?gid=0&single=true&output=csv';
+
+window.onload = async function () {
+    try {
+        const response = await fetch(CSV_URL);
+        const buffer = await response.arrayBuffer();
+        const decoder = new TextDecoder('utf-8');
+        const csvText = decoder.decode(buffer);
+        
+        allData = parseCSV(csvText);
+        
+        console.log("Datos cargados desde Google Sheets:", allData.length);
+        
+        buildDropdowns();
+        applyFilters();
+    } catch (e) {
+        console.error("Error cargando datos de Google Sheets:", e);
+        // Fallback a localStorage si falla la red
+        const raw = localStorage.getItem('notas_emisiones');
+        if (raw) {
+            try { allData = JSON.parse(raw); } catch(ex) { allData = []; }
+        }
+        buildDropdowns();
+        applyFilters();
+    }
+};
+
+function parseCSV(text) {
+    const lines = text.split('\n');
+    if (lines.length < 2) return [];
+
+    // Limpiar BOM y obtener headers
+    const headerLine = lines[0].replace(/^\uFEFF/, "").split(',');
+    const headers = headerLine.map(h => h.trim().replace(/"/g, '').toLowerCase());
+
+    // Mapeo flexible de headers a las claves internas del dashboard
+    const keyMap = {
+        'id': 'id_emision',
+        'usuario': 'usuario',
+        'fecha': 'fecha',
+        'medio': 'medio',
+        'titular': 'titular',
+        'firma': 'firma',
+        'página': 'pagina',
+        'pagina': 'pagina',
+        'dependencia': 'dependencia',
+        'organismo': 'organismo',
+        'género': 'genero',
+        'genero': 'genero',
+        'canal': 'canal',
+        'tema': 'tema',
+        'estatus': 'estatus',
+        'municipio': 'municipio'
+    };
+
+    const data = [];
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Parser que respeta comas dentro de comillas
+        const values = [];
+        let current = '';
+        let inQuotes = false;
+        for (let char of line) {
+            if (char === '"') inQuotes = !inQuotes;
+            else if (char === ',' && !inQuotes) {
+                values.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        values.push(current.trim());
+
+        const row = {};
+        headers.forEach((h, idx) => {
+            const key = keyMap[h] || h;
+            let val = (values[idx] || '').replace(/^"|"$/g, '').replace(/""/g, '"').trim();
+            row[key] = val;
+        });
+        data.push(row);
+    }
+    return data;
+}
+
+// ── MULTISELECT ────────────────────────────────────────
+function buildDropdowns() {
+    Object.keys(sel).forEach(field => {
+        const vals = [...new Set(allData.map(d => d[field]).filter(Boolean))].sort((a,b) => a.localeCompare(b,'es'));
+        const dd = document.getElementById('d-' + field);
+        dd.innerHTML = '';
+        vals.forEach(v => {
+            const lbl = document.createElement('label');
+            lbl.className = 'ms-opt';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.value = v;
+            cb.addEventListener('change', () => {
+                if (cb.checked) { if (!sel[field].includes(v)) sel[field].push(v); }
+                else { sel[field] = sel[field].filter(x => x !== v); }
+                updateToggle(field);
+                applyFilters();
+            });
+            lbl.appendChild(cb);
+            lbl.appendChild(document.createTextNode(v));
+            dd.appendChild(lbl);
+        });
+    });
+}
+
+function toggleMS(field) {
+    const dd = document.getElementById('d-' + field);
+    const isOpen = dd.classList.contains('open');
+    document.querySelectorAll('.ms-dropdown').forEach(d => d.classList.remove('open'));
+    if (!isOpen) dd.classList.add('open');
+}
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('.ms-wrap')) {
+        document.querySelectorAll('.ms-dropdown').forEach(d => d.classList.remove('open'));
+    }
+});
+
+function updateToggle(field) {
+    const t = document.getElementById('t-' + field);
+    const s = sel[field];
+    if (s.length === 0)      t.textContent = field === 'dependencia' ? 'Todas' : 'Todos';
+    else if (s.length === 1) t.textContent = s[0];
+    else                     t.textContent = s.length + ' seleccionados';
+}
+
+function resetFilters() {
+    document.getElementById('f-desde').value = '';
+    document.getElementById('f-hasta').value = '';
+    document.getElementById('f-search').value = '';
+    Object.keys(sel).forEach(field => {
+        sel[field] = [];
+        updateToggle(field);
+        document.querySelectorAll('#d-' + field + ' input').forEach(cb => cb.checked = false);
+    });
+    applyFilters();
+}
+
+// ── FILTRADO ────────────────────────────────────────────
+function applyFilters() {
+    const desde  = document.getElementById('f-desde').value;
+    const hasta  = document.getElementById('f-hasta').value;
+    const search = document.getElementById('f-search').value.toLowerCase().trim();
+
+    filteredData = allData.filter(d => {
+        if (desde && d.fecha && d.fecha < desde) return false;
+        if (hasta && d.fecha && d.fecha > hasta) return false;
+        if (search && !(d.titular || '').toLowerCase().includes(search)) return false;
+        for (const field of Object.keys(sel)) {
+            if (sel[field].length > 0 && !sel[field].includes(d[field])) return false;
+        }
+        return true;
+    });
+
+    updateKPIs();
+    renderAll();
+}
+
+// ── KPIs ────────────────────────────────────────────────
+function countBy(data, key) {
+    return data.reduce((acc, d) => {
+        const v = d[key] || '(sin valor)';
+        acc[v] = (acc[v] || 0) + 1;
+        return acc;
+    }, {});
+}
+
+function updateKPIs() {
+    document.getElementById('kpi-total').textContent = filteredData.length;
+
+    const deps  = Object.entries(countBy(filteredData, 'dependencia')).sort((a,b) => b[1]-a[1]);
+    const medios= Object.entries(countBy(filteredData, 'medio')).sort((a,b) => b[1]-a[1]);
+    document.getElementById('kpi-dep').textContent   = deps[0]   ? `${deps[0][0]}  (${deps[0][1]})` : '—';
+    document.getElementById('kpi-medio').textContent = medios[0] ? `${medios[0][0]}  (${medios[0][1]})` : '—';
+
+    const st  = countBy(filteredData, 'estatus');
+    const pos = (st['Positiva'] || 0) + (st['Positivo'] || 0);
+    const pct = filteredData.length > 0 ? Math.round(pos / filteredData.length * 100) : 0;
+    document.getElementById('kpi-pos').textContent = pct + '%';
+}
+
+// ── CHARTS ──────────────────────────────────────────────
+function destroyChart(id) {
+    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+function renderAll() {
+    renderPie('cGenero',  countBy(filteredData, 'genero'));
+    renderPie('cEstatus', countBy(filteredData, 'estatus'));
+    renderBar('cDependencia', countBy(filteredData, 'dependencia'));
+    const top10 = Object.fromEntries(
+        Object.entries(countBy(filteredData, 'medio')).sort((a,b)=>b[1]-a[1]).slice(0,10)
+    );
+    renderBar('cMedio', top10);
+    renderLine('cEvolucion', countBy(filteredData, 'fecha'));
+}
+
+function renderPie(id, counts) {
+    destroyChart(id);
+    const labels = Object.keys(counts);
+    const values = Object.values(counts);
+    if (labels.length === 0) return;
+
+    const ctx = document.getElementById(id).getContext('2d');
+    chartInstances[id] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: values,
+                backgroundColor: PAL,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '42%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { family: "'Montserrat','Helvetica Neue',sans-serif", size: 12, weight: '600' },
+                        color: '#611232',
+                        padding: 14,
+                        boxWidth: 14
+                    }
+                },
+                datalabels: {
+                    display: ctx => ctx.dataset.data[ctx.dataIndex] > 0,
+                    color: '#fff',
+                    font: { family: "'Montserrat','Helvetica Neue',sans-serif", size: 11, weight: '700' },
+                    formatter: (val, ctx) => {
+                        const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+                        return val + '\n' + Math.round(val/total*100) + '%';
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderBar(id, counts) {
+    destroyChart(id);
+    const entries = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+    if (entries.length === 0) return;
+
+    const labels = entries.map(e => e[0]);
+    const values = entries.map(e => e[1]);
+    const ctx = document.getElementById(id).getContext('2d');
+
+    chartInstances[id] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                data: values,
+                backgroundColor: PAL[0],
+                borderRadius: 4,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'right',
+                    color: '#611232',
+                    font: { family: "'Montserrat','Helvetica Neue',sans-serif", size: 11, weight: '700' },
+                    formatter: v => v
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: { family: "'Montserrat','Helvetica Neue',sans-serif", size: 11 },
+                        color: '#6b7280',
+                        stepSize: 1
+                    },
+                    grid: { color: '#f0f0f0' }
+                },
+                y: {
+                    ticks: {
+                        font: { family: "'Montserrat','Helvetica Neue',sans-serif", size: 11 },
+                        color: '#15173D'
+                    },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+function renderLine(id, counts) {
+    destroyChart(id);
+    const entries = Object.entries(counts).sort((a,b) => a[0].localeCompare(b[0]));
+    if (entries.length === 0) return;
+
+    const labels = entries.map(e => e[0]);
+    const values = entries.map(e => e[1]);
+    const ctx = document.getElementById(id).getContext('2d');
+
+    chartInstances[id] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Emisiones',
+                data: values,
+                borderColor: '#15173D',
+                backgroundColor: 'rgba(21,23,61,0.08)',
+                borderWidth: 2.5,
+                pointRadius: 4,
+                pointBackgroundColor: '#d90000',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                fill: true,
+                tension: 0.35
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    align: 'top',
+                    color: '#15173D',
+                    font: { family: "'Montserrat','Helvetica Neue',sans-serif", size: 10, weight: '700' },
+                    formatter: v => v > 0 ? v : ''
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: { family: "'Montserrat','Helvetica Neue',sans-serif", size: 10 },
+                        color: '#6b7280',
+                        maxRotation: 45
+                    },
+                    grid: { color: '#f0f0f0' }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: { family: "'Montserrat','Helvetica Neue',sans-serif", size: 11 },
+                        color: '#6b7280',
+                        stepSize: 1
+                    },
+                    grid: { color: '#f0f0f0' }
+                }
+            }
+        }
+    });
+}
+</script>
+</body>
+</html>

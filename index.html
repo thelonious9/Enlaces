@@ -10,19 +10,19 @@
 
   <style>
     :root {
-      --color-fondo-pagina: #fcfcfc;
+      --color-fondo-pagina: #f8f9fa;
       --color-fondo-form: #ffffff;
-      --color-primary: #15173D;
-      --color-primary-hover: #21255e;
-      --color-secondary: #15173D;
-      --color-secondary-hover: #21255e;
+      --color-primary: #611232;
+      --color-primary-hover: #7E183B;
+      --color-secondary: #A57F2C;
+      --color-secondary-hover: #D4AF37;
       --color-danger: #d90000;
       --color-danger-hover: #a10000;
-      --color-success: #15173D;
+      --color-success: #611232;
       --color-error: #d90000;
-      --color-text: #15173D;
-      --color-border: #15173D;
-      --radius: 0px;
+      --color-text: #611232;
+      --color-border: #611232;
+      --radius: 4px;
       --table-zoom: 1;
       --color-blocked-bg: #eaecf0;
     }
@@ -57,8 +57,8 @@
     }
 
     header {
-      border-top: 5px solid var(--color-text);
-      border-bottom: 5px solid var(--color-text);
+      border-top: 5px solid var(--color-primary);
+      border-bottom: 5px solid var(--color-secondary);
       padding: 24px 0;
       margin-bottom: 32px;
       background: transparent;
@@ -560,10 +560,16 @@
 <body>
   <header>
     <h1>Trazabilidad de comunicados</h1>
-    <p></p>
-    <button type="button" class="theme-toggle-btn" id="themeToggle" title="Cambiar tema">
-      <i class="fa-solid fa-lightbulb"></i>
-    </button>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a href="dashboard.html" style="text-decoration: none;">
+        <button type="button" title="Ver Dashboard">
+          <i class="fa-solid fa-chart-line"></i> Dashboard
+        </button>
+      </a>
+      <button type="button" class="theme-toggle-btn" id="themeToggle" title="Cambiar tema">
+        <i class="fa-solid fa-lightbulb"></i>
+      </button>
+    </div>
   </header>
   <div class="art-box">
     <div class="art-circle"></div>
