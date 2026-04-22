@@ -554,13 +554,38 @@
         display: none;
       }
     }
+
+    /* Estilo para la leyenda de atajos */
+    .shortcuts-legend {
+      font-size: 0.75rem;
+      color: var(--color-text);
+      opacity: 0.7;
+      margin-right: 15px;
+      text-align: right;
+      line-height: 1.3;
+      display: block;
+    }
+
+    .shortcuts-legend b {
+      color: var(--color-secondary);
+    }
+
+    @media (max-width: 768px) {
+      .shortcuts-legend {
+        display: none;
+      }
+    }
   </style>
 </head>
 
 <body>
   <header>
     <h1>Trazabilidad de comunicados</h1>
-    <div style="display: flex; gap: 10px; align-items: center;">
+    <div style="display: flex; gap: 15px; align-items: center;">
+      <div class="shortcuts-legend">
+        <b>Enter/tab:</b> desplazamiento por campos | <b>Ctrl+Q:</b> Guardar<br>
+        <b>Ctrl+Shift+L:</b> Bloquear/Desbloquear | <b>Ctrl+Shift+J:</b> Duplicar
+      </div>
       <a href="dashboard.html" style="text-decoration: none;">
         <button type="button" title="Ver Dashboard">
           <i class="fa-solid fa-chart-line"></i> Dashboard
@@ -1131,16 +1156,16 @@
       }
     }
     // FIN FUNCIÓN DE DEPENDENCIA
- 
+
     function actualizarID(forcedAbrev) {
       const inputID = document.getElementById('id_emision');
       const dep = document.getElementById('dependencia').value.trim();
       const fec = document.getElementById('fecha').value;
- 
+
       // Dividimos el ID actual por "/" para conservar la parte central editada
       let currentVal = inputID.value || '';
       let parts = currentVal.split('/');
- 
+
       // 1. Obtener Abrev de Dependencia
       let abrev = (typeof forcedAbrev === 'string') ? forcedAbrev : '';
       if (!abrev && dep) {
@@ -1154,13 +1179,13 @@
       } else if (!abrev) {
         abrev = parts[0] || '';
       }
- 
+
       // 2. Conservar o inicializar la parte central (Editable texto.Editable número)
       let middle = parts[1] || '.';
- 
+
       // 3. Obtener Año de Fecha
       let year = fec ? fec.split('-')[0] : (parts[2] || '');
- 
+
       // Construir el nuevo ID
       if (abrev || middle !== '.' || year) {
         inputID.value = `${abrev}/${middle}/${year}`;
@@ -1825,7 +1850,7 @@
       CAMPOS_CON_BLOQUEO.forEach(id => {
         const campo = document.getElementById(id);
         if (localStorage.getItem(id)) campo.value = localStorage.getItem(id);
-        
+
         // 🌟 DEFAULT: Si la fecha está vacía, poner hoy 🌟
         if (id === 'fecha' && !campo.value) {
           campo.value = new Date().toISOString().slice(0, 10);
@@ -1842,7 +1867,7 @@
 
       // 🌟 LÓGICA DE SELECCIÓN DE SEGMENTO PARA ID 🌟
       const idEmisionField = document.getElementById('id_emision');
-      idEmisionField.addEventListener('focus', function() {
+      idEmisionField.addEventListener('focus', function () {
         const val = this.value;
         const firstSlash = val.indexOf('/');
         const lastSlash = val.lastIndexOf('/');
@@ -1850,8 +1875,8 @@
           // Selecciona la parte entre las dos barras
           this.setSelectionRange(firstSlash + 1, lastSlash);
         } else if (firstSlash !== -1) {
-           // Si solo hay una barra (caso raro pero por si acaso)
-           this.setSelectionRange(firstSlash + 1, val.length);
+          // Si solo hay una barra (caso raro pero por si acaso)
+          this.setSelectionRange(firstSlash + 1, val.length);
         }
       });
 
