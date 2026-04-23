@@ -583,8 +583,8 @@
                 headers.forEach((h, idx) => {
                     const mappedKey = keyMap[h] || h;
                     let val = (values[idx] || '').replace(/^"|"$/g, '').replace(/""/g, '"').trim();
-                    // Normalizar ID eliminando espacios para evitar duplicados por inconsistencias
-                    if (mappedKey === 'id_emision') val = val.replace(/\s+/g, '');
+                    // Normalizar ID (MAYÚSCULAS y sin espacios) para evitar duplicados por inconsistencias
+                    if (mappedKey === 'id_emision') val = val.toUpperCase().replace(/\s+/g, '');
                     row[mappedKey] = val;
                 });
                 data.push(row);
