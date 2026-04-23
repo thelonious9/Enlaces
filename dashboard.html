@@ -340,6 +340,26 @@
             display: inline-block;
             margin-bottom: 5px;
         }
+        
+        /* Estilos para Tabla de Comunicados */
+        .table-comunicados tbody tr {
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        .table-comunicados tbody tr:hover {
+            background: #fdfdfd;
+        }
+        .table-comunicados td {
+            padding: 12px 20px;
+            font-size: 13px;
+            color: #333;
+        }
+        .table-comunicados .impact-cell {
+            text-align: right;
+            font-weight: bold;
+            color: var(--guinda);
+            font-size: 15px;
+        }
     </style>
 </head>
 
@@ -379,8 +399,26 @@
                     <select id="sel-Estatus" onchange="updateFilters()"></select>
                 </div>
                 <div class="f-group">
-                    <label id="lbl-Fecha">Rango de Fecha</label>
-                    <select id="sel-Fecha" onchange="updateFilters()"></select>
+                    <label id="lbl-Fecha">Periodo</label>
+                    <select id="sel-Fecha-Range" onchange="handleDateRangeChange()">
+                        <option value="Todos">Todo el histórico</option>
+                        <option value="Hoy">Hoy</option>
+                        <option value="Ayer">Ayer</option>
+                        <option value="Semana">Últimos 7 días</option>
+                        <option value="MesActual">Este mes</option>
+                        <option value="MesAnterior">Mes anterior</option>
+                        <option value="Custom">Rango personalizado</option>
+                    </select>
+                </div>
+                <div id="custom-date-cont" style="display:none; gap:5px; margin-bottom:15px;">
+                    <div style="flex:1;">
+                        <label style="font-size:9px; color:#999;">INICIO</label>
+                        <input type="date" id="date-start" onchange="updateFilters()">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:9px; color:#999;">FIN</label>
+                        <input type="date" id="date-end" onchange="updateFilters()">
+                    </div>
                 </div>
                 <div class="f-group">
                     <label id="lbl-Dependencia">Dependencia</label>
@@ -438,7 +476,27 @@
             </div>
 
             <div class="charts-row">
-                <div class="card full elastic"><canvas id="g_clave"></canvas></div>
+                <div class="card full elastic"><canvas id="g_butterfly"></canvas></div>
+                
+                <div class="card full" style="padding:0; overflow:hidden; display:flex; flex-direction:column; max-height:400px; border-top: 3px solid var(--dorado);">
+                    <div style="padding: 15px 20px; background: #fff; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;">
+                        <h3 style="margin: 0; color: var(--guinda); font-size: 15px;"><i class="fa-solid fa-list" style="color:var(--dorado); margin-right:8px;"></i>Listado de Comunicados</h3>
+                    </div>
+                    <div style="flex: 1; overflow-y: auto;">
+                        <table class="table-comunicados" style="width: 100%; border-collapse: collapse;">
+                            <thead style="position: sticky; top: 0; background: #f8f9fa; z-index: 5;">
+                                <tr>
+                                    <th style="text-align: left; padding: 12px 20px; color: #555; font-size: 12px; border-bottom: 2px solid #ddd; text-transform: uppercase;">Titular del Comunicado</th>
+                                    <th style="text-align: right; padding: 12px 20px; color: #555; font-size: 12px; border-bottom: 2px solid #ddd; width: 150px; text-transform: uppercase;">Trazabilidad</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-comunicados-body">
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="card"><canvas id="g_doughnut"></canvas></div>
                 <div class="card"><canvas id="g_timeline"></canvas></div>
             </div>
@@ -592,6 +650,13 @@
             return data;
         }
 
+        function handleDateRangeChange() {
+            const range = document.getElementById('sel-Fecha-Range').value;
+            const customCont = document.getElementById('custom-date-cont');
+            customCont.style.display = (range === 'Custom') ? 'flex' : 'none';
+            updateFilters();
+        }
+
         function getWeek(date) {
             const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
             d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
@@ -610,16 +675,17 @@
             });
         }
 
-        function updateFilters() {
+        function updateFilters(changedCol) {
             const f = getCurrentFilterState();
-            ["Fecha", ...vColsHierarchy].forEach(col => {
+            [...vColsHierarchy].forEach(col => {
                 const s = document.getElementById(`sel-${col}`);
                 if (!s) return;
 
                 // Lógica de filtrado cruzado: para cada filtro, mostrar opciones basadas en los DEMÁS filtros activos
                 let sourceItems = rData.filter(d => {
-                    // Filtrar por Fecha (siempre se aplica si no es el filtro de Fecha)
-                    if (col !== "Fecha" && f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
+                    // Filtrar por Fecha
+                    if (f.FechaStart && d._date < f.FechaStart) return false;
+                    if (f.FechaEnd && d._date > f.FechaEnd) return false;
 
                     // Filtrar por todos los demás filtros
                     for (let otherCol of vColsHierarchy) {
@@ -642,12 +708,6 @@
         }
 
         function renderSelectOptions(select, col, items, activeValue) {
-            if (col === "Fecha") {
-                const allDates = [...new Set(rData.map(d => d._month))].sort().reverse();
-                select.innerHTML = `<option value="Todos">-- Todos los meses --</option>` +
-                    allDates.map(m => `<option value="${m}" ${m === activeValue ? 'selected' : ''}>${m}</option>`).join('');
-                return;
-            }
             let optionsSet = {};
             items.forEach(d => { const v = String(d[col.toLowerCase()] || "N/A"); optionsSet[v] = (optionsSet[v] || 0) + 1; });
             const sortedKeys = Object.keys(optionsSet).sort((a, b) => optionsSet[b] - optionsSet[a]);
@@ -662,7 +722,38 @@
         }
 
         function getCurrentFilterState() {
-            let state = { Fecha: document.getElementById('sel-Fecha').value || "Todos" };
+            const rangeSelect = document.getElementById('sel-Fecha-Range').value;
+            let start = null, end = null;
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            if (rangeSelect === 'Hoy') {
+                start = new Date(now); end = new Date(now);
+            } else if (rangeSelect === 'Ayer') {
+                start = new Date(now); start.setDate(now.getDate() - 1);
+                end = new Date(start);
+            } else if (rangeSelect === 'Semana') {
+                start = new Date(now); start.setDate(now.getDate() - 7);
+                end = new Date(now);
+            } else if (rangeSelect === 'MesActual') {
+                start = new Date(now.getFullYear(), now.getMonth(), 1);
+                end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            } else if (rangeSelect === 'MesAnterior') {
+                start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                end = new Date(now.getFullYear(), now.getMonth(), 0);
+            } else if (rangeSelect === 'Custom') {
+                const s = document.getElementById('date-start').value;
+                const e = document.getElementById('date-end').value;
+                if (s) start = new Date(s + "T00:00:00");
+                if (e) end = new Date(e + "T23:59:59");
+            }
+
+            let state = {
+                FechaRange: rangeSelect,
+                FechaStart: start,
+                FechaEnd: end
+            };
+
             vColsHierarchy.forEach(col => {
                 const el = document.getElementById(`sel-${col}`);
                 if (!el) return;
@@ -676,7 +767,8 @@
             try {
                 const f = getCurrentFilterState();
                 const fil = rData.filter(d => {
-                    if (f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
+                    if (f.FechaStart && d._date < f.FechaStart) return false;
+                    if (f.FechaEnd && d._date > f.FechaEnd) return false;
                     return vColsHierarchy.every(col => {
                         const val = f[col];
                         if (val === "Todos" || (Array.isArray(val) && val.length === 0)) return true;
@@ -754,7 +846,8 @@
 
             // Dataset filtrado SOLO por Fecha, Dependencia y Canal para el gráfico de Rendimiento
             const rendData = rData.filter(d => {
-                if (f.Fecha !== "Todos" && d._month !== f.Fecha) return false;
+                if (f.FechaStart && d._date < f.FechaStart) return false;
+                if (f.FechaEnd && d._date > f.FechaEnd) return false;
                 const depVal = f.Dependencia;
                 if (depVal && depVal.length > 0) {
                     if (!depVal.includes(String(d.dependencia || "N/A"))) return false;
@@ -763,8 +856,11 @@
                 return true;
             });
 
-            // Gráfico de Clave con promedio - Ahora solo responde a Fecha, Dependencia y Canal
-            renderChart('g_clave', rendData, 'id_emision', 'Rendimiento en medios', 'bar_avg', xLimit, xMode);
+            // Gráfico de Mariposa - Ahora solo responde a Fecha, Dependencia y Canal
+            renderButterflyChart(rendData, xLimit, xMode);
+
+            // Tabla de Comunicados (debajo de mariposa)
+            renderComunicadosTable(rendData);
 
             // Doughnut de Estatus - ahora responde a todos los filtros
             renderChart('g_doughnut', data, 'estatus', 'Estatus', 'doughnut', 15, 'top', palette);
@@ -863,6 +959,203 @@
                 textEl.classList.add('expanded');
                 btnEl.innerText = "Ver menos";
             }
+        }
+
+        function renderComunicadosTable(data) {
+            const tbody = document.getElementById('table-comunicados-body');
+            if (!tbody) return;
+
+            const grouped = {};
+            data.forEach(d => {
+                const id = d.id_emision || "N/A";
+                // Excluir si no hay ID válido
+                if (id === "N/A" || id.trim() === "") return;
+
+                if (!grouped[id]) grouped[id] = { mentions: 0, titulares: {} };
+                
+                grouped[id].mentions++;
+                
+                const titular = d.titular && d.titular.trim() ? d.titular.trim() : "(Sin titular)";
+                grouped[id].titulares[titular] = (grouped[id].titulares[titular] || 0) + 1;
+            });
+
+            // Convertir a array y encontrar el titular más repetido
+            const resultList = Object.keys(grouped).map(id => {
+                const titularesObj = grouped[id].titulares;
+                let maxCount = 0;
+                let topTitular = "(Sin titular)";
+                
+                for (const [tit, count] of Object.entries(titularesObj)) {
+                    if (count > maxCount) {
+                        maxCount = count;
+                        topTitular = tit;
+                    }
+                }
+                
+                return {
+                    id: id,
+                    titular: topTitular,
+                    mentions: grouped[id].mentions
+                };
+            });
+
+            // Ordenar por número de menciones (descendente)
+            resultList.sort((a, b) => b.mentions - a.mentions);
+
+            if (resultList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; padding:30px; color:#888;">No hay comunicados válidos para los filtros seleccionados</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            resultList.forEach(item => {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="font-weight:600; margin-bottom:6px; color:var(--guinda);">${item.titular}</div>
+                            <div style="font-size:10px; color:#888; background:#eee; display:inline-block; padding:3px 8px; border-radius:12px; font-weight:bold;">ID: ${item.id}</div>
+                        </td>
+                        <td class="impact-cell">${item.mentions}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        function renderButterflyChart(data, limit, mode) {
+            const ctx = document.getElementById('g_butterfly');
+            if (!ctx) return;
+
+            const grouped = {};
+            data.forEach(d => {
+                const dep = d.dependencia || "N/A";
+                const id = d.id_emision || "N/A";
+                
+                // Excluir elementos sin dependencia o sin ID válido (N/A o vacío)
+                if (dep === "N/A" || id === "N/A" || id.trim() === "") return;
+                
+                if (!grouped[dep]) grouped[dep] = { ids: new Set(), mentions: 0 };
+                
+                grouped[dep].ids.add(id);
+                grouped[dep].mentions++;
+            });
+
+            let sorted = Object.entries(grouped).sort((a, b) => b[1].mentions - a[1].mentions);
+            if (mode === 'bottom') sorted = sorted.reverse();
+            const finalData = sorted.slice(0, limit);
+
+            const maxIds = Math.max(...finalData.map(x => x[1].ids.size), 1);
+            const maxMentions = Math.max(...finalData.map(x => x[1].mentions), 1);
+            
+            // Factor de escala para que las barras de IDs (usualmente menores) sean visualmente comparables
+            const scaleFactor = maxMentions / maxIds;
+            const gap = maxMentions * 0.5; // Espacio central para las etiquetas
+            const padding = maxMentions * 0.2; // Espacio exterior para datalabels
+
+            const labels = finalData.map(x => x[0]);
+            
+            // Arrays de formato {x: [min, max], y, realValue} para barras flotantes
+            const floatingIdsData = finalData.map(x => {
+                const visualSize = x[1].ids.size * scaleFactor;
+                return {
+                    x: [-visualSize - gap, -gap],
+                    y: x[0],
+                    realValue: x[1].ids.size
+                };
+            });
+            const floatingMentionsData = finalData.map(x => {
+                return {
+                    x: [gap, x[1].mentions + gap],
+                    y: x[0],
+                    realValue: x[1].mentions
+                };
+            });
+
+            if (vCharts['g_butterfly']) vCharts['g_butterfly'].destroy();
+            vCharts['g_butterfly'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Comunicados',
+                            data: floatingIdsData,
+                            backgroundColor: '#A57F2C',
+                            borderWidth: 1,
+                            barThickness: 20
+                        },
+                        {
+                            label: 'Trazabilidad de comunicados',
+                            data: floatingMentionsData,
+                            backgroundColor: '#611232',
+                            borderWidth: 1,
+                            barThickness: 20
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Rendimiento por Dependencia (Comunicados vs Trazabilidad)', color: '#611232', font: { size: 15, weight: 'bold' } },
+                        legend: { display: true, position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    return `${context.dataset.label}: ${Math.round(context.raw.realValue)}`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#444', // Etiquetas fuera, color oscuro para contraste
+                            anchor: (context) => context.datasetIndex === 0 ? 'start' : 'end',
+                            align: (context) => context.datasetIndex === 0 ? 'start' : 'end',
+                            offset: 6,
+                            font: { weight: 'bold', size: 11 },
+                            formatter: (val) => val.realValue > 0 ? Math.round(val.realValue) : ''
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: false,
+                            min: -maxMentions - gap - padding,
+                            max: maxMentions + gap + padding,
+                            ticks: { display: false },
+                            grid: { display: false },
+                            border: { display: false }
+                        },
+                        y: {
+                            stacked: false,
+                            ticks: { display: false },
+                            grid: { display: false },
+                            border: { display: false }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'centerLabels',
+                    afterDraw: (chart) => {
+                        const { ctx, scales: { x, y } } = chart;
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#611232';
+                        ctx.font = 'bold 12px sans-serif';
+                        
+                        y.getTicks().forEach((tick, index) => {
+                            const yPos = y.getPixelForTick(index);
+                            const xPos = x.getPixelForValue(0);
+                            const label = labels[index];
+                            
+                            // Ya no es necesario el fondo blanco porque las barras están separadas
+                            ctx.fillText(label, xPos, yPos);
+                        });
+                        ctx.restore();
+                    }
+                }]
+            });
         }
 
         function renderChart(id, dataset, field, title, type, limit = 10, mode = 'top', palette = paletteDefault) {
@@ -996,11 +1289,17 @@
             const summary = document.createElement('div');
             summary.style = "padding: 30px; border-bottom: 2px solid #611232; margin-bottom: 25px; font-family: 'Segoe UI', sans-serif;";
             const depLabel = f.Dependencia.length > 0 ? (f.Dependencia.length > 5 ? `${f.Dependencia.length} selecc.` : f.Dependencia.join(', ')) : "Todas";
+            
+            let dateLabel = f.FechaRange === "Todos" ? "Todo el histórico" : f.FechaRange;
+            if (f.FechaStart && f.FechaEnd) {
+                dateLabel = `${f.FechaStart.toLocaleDateString()} - ${f.FechaEnd.toLocaleDateString()}`;
+            }
+
             summary.innerHTML = `
             <h1 style="color: #611232; margin: 0 0 15px 0; font-size: 28px;">Reporte de Comunicados</h1>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; font-size: 15px;">
                 <div><strong>Estatus:</strong> ${f.Estatus}</div>
-                <div><strong>Periodo:</strong> ${f.Fecha}</div>
+                <div><strong>Periodo:</strong> ${dateLabel}</div>
                 <div><strong>Dependencia(s):</strong> ${depLabel}</div>
                 <div><strong>Total Registros:</strong> ${document.getElementById('kpi-total').innerText}</div>
             </div>`;
