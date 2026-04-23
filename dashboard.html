@@ -581,9 +581,11 @@
                 values.push(current.trim());
                 const row = {};
                 headers.forEach((h, idx) => {
-                    // Buscar si el header (h) o algo similar está en el keyMap
                     const mappedKey = keyMap[h] || h;
-                    row[mappedKey] = (values[idx] || '').replace(/^"|"$/g, '').replace(/""/g, '"').trim();
+                    let val = (values[idx] || '').replace(/^"|"$/g, '').replace(/""/g, '"').trim();
+                    // Normalizar ID eliminando espacios para evitar duplicados por inconsistencias
+                    if (mappedKey === 'id_emision') val = val.replace(/\s+/g, '');
+                    row[mappedKey] = val;
                 });
                 data.push(row);
             }
