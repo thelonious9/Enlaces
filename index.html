@@ -214,6 +214,75 @@
       resize: none;
     }
 
+    .id-container-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-fondo-form);
+      /* overflow: hidden; */ /* REMOVED to allow dropdown visibility */
+      position: relative;
+      min-width: 320px; /* Increased to ensure parts are visible */
+    }
+
+    .id-container {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex: 1;
+      height: 100%;
+      overflow: visible !important;
+    }
+
+    .id-container .sub-campo {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+
+    .id-container .sub-campo input {
+      width: 100%;
+      min-width: 0;
+      border: none !important;
+      border-radius: 0 !important;
+      padding: 10px 8px !important;
+      background: transparent !important;
+      color: var(--color-text) !important;
+    }
+
+    .id-container .sub-campo input:focus {
+      background: var(--color-text) !important;
+      color: var(--color-fondo-pagina) !important;
+    }
+
+    .id-container .separator {
+      font-weight: bold;
+      color: var(--color-text);
+      user-select: none;
+      padding: 0 2px;
+      background: transparent;
+    }
+
+    /* Width adjustments for parts */
+    #id_part1 { flex: 2.0; border-radius: var(--radius) 0 0 var(--radius) !important; } /* Sigla */
+    #id_part2 { flex: 1.0; } /* Tipo */
+    #id_part3 { flex: 1.0; } /* Num */
+    #id_part4 { 
+      flex: 1; 
+      text-align: center; 
+      background: var(--color-blocked-bg) !important; 
+      font-weight: bold;
+      border-radius: 0 var(--radius) var(--radius) 0 !important;
+    }
+
+    .id-container .sugerencias {
+      min-width: 150px;
+      z-index: 1001; /* Above other elements */
+    }
+
     .campo-actions {
       display: flex;
       gap: 8px;
@@ -626,9 +695,30 @@
 
     <label for="id_emision">ID:</label>
     <div class="campo">
-      <input type="text" id="id_emision" name="id_emision" required>
+      <div class="id-container-wrapper">
+        <div class="id-container">
+          <div class="sub-campo">
+            <input type="text" id="id_part1" placeholder="Sigla" autocomplete="off" required oninput="updateHiddenID()">
+            <div id="sugIdPart1" class="sugerencias"></div>
+          </div>
+          <span class="separator">/</span>
+          <div class="sub-campo">
+            <input type="text" id="id_part2" placeholder="Tipo" autocomplete="off" required oninput="updateHiddenID()">
+            <div id="sugIdPart2" class="sugerencias"></div>
+          </div>
+          <div class="sub-campo">
+            <input type="text" id="id_part3" placeholder="Num" inputmode="numeric" pattern="[0-9]*" required
+              oninput="updateHiddenID()">
+          </div>
+          <span class="separator">/</span>
+          <div class="sub-campo">
+            <input type="text" id="id_part4" readonly tabindex="-1">
+          </div>
+        </div>
+      </div>
+      <input type="hidden" id="id_emision" name="id_emision">
       <div class="campo-actions">
-        <input type="checkbox" id="checkId_emision" onchange="alternarBloqueo('id_emision')" tabindex="-1">
+        <input type="checkbox" id="checkId_emision" onchange="alternarBloqueoID()" tabindex="-1">
         <label for="checkId_emision" class="lock-label"><i class="fa-solid fa-lock"></i></label>
       </div>
     </div>
@@ -895,7 +985,8 @@
       estatus: "./Estatus.csv",
       temas: "./Tema.csv",
       municipios: "./Municipio.csv",
-      firmas: "./Firma.csv" // Usado para la lista de Firmas por Medio
+      firmas: "./Firma.csv", // Usado para la lista de Firmas por Medio
+      ids_csv: "./ID.csv"
     };
 
     // ======================================================================
@@ -1123,6 +1214,10 @@
           contenedor.innerHTML = "";
           // Dispara blur para actualizar dependencias (si aplica)
           document.getElementById(idCampo).dispatchEvent(new Event('blur'));
+          // Si es parte del ID, actualizar el ID oculto
+          if (idCampo.startsWith('id_part')) {
+            updateHiddenID();
+          }
         };
         contenedor.appendChild(div);
       });
@@ -1157,40 +1252,67 @@
     }
     // FIN FUNCIÓN DE DEPENDENCIA
 
-    function actualizarID(forcedAbrev) {
+    function updateHiddenID() {
+      const p1 = document.getElementById('id_part1').value.trim();
+      const p2 = document.getElementById('id_part2').value.trim();
+      const p3 = document.getElementById('id_part3').value.trim();
+      const p4 = document.getElementById('id_part4').value.trim();
       const inputID = document.getElementById('id_emision');
-      const dep = document.getElementById('dependencia').value.trim();
-      const fec = document.getElementById('fecha').value;
 
-      // Dividimos el ID actual por "/" para conservar la parte central editada
-      let currentVal = inputID.value || '';
-      let parts = currentVal.split('/');
-
-      // 1. Obtener Abrev de Dependencia
-      let abrev = (typeof forcedAbrev === 'string') ? forcedAbrev : '';
-      if (!abrev && dep) {
-        // Buscamos en el mapa de abreviaturas
-        const key = findKeyCaseInsensitive(abrevMap, dep);
-        if (key && abrevMap[key] && abrevMap[key].length > 0) {
-          abrev = abrevMap[key][0];
-        } else {
-          abrev = parts[0] || ''; // Mantenemos lo que había si no hay match
-        }
-      } else if (!abrev) {
-        abrev = parts[0] || '';
-      }
-
-      // 2. Conservar o inicializar la parte central (Editable texto.Editable número)
-      let middle = parts[1] || '.';
-
-      // 3. Obtener Año de Fecha
-      let year = fec ? fec.split('-')[0] : (parts[2] || '');
-
-      // Construir el nuevo ID
-      if (abrev || middle !== '.' || year) {
-        inputID.value = `${abrev}/${middle}/${year}`;
+      // Formato: Part1 / Part2Part3 / Part4
+      if (p1 || p2 || p3 || p4) {
+        inputID.value = `${p1}/${p2}${p3}/${p4}`;
         localStorage.setItem('id_emision', inputID.value);
+        // Persistir también las partes para que no se pierdan al recargar
+        localStorage.setItem('id_part1', p1);
+        localStorage.setItem('id_part2', p2);
+        localStorage.setItem('id_part3', p3);
+        localStorage.setItem('id_part4', p4);
       }
+    }
+
+    function alternarBloqueoID() {
+      const checkbox = document.getElementById('checkId_emision');
+      const isChecked = checkbox.checked;
+      const parts = ['id_part1', 'id_part2', 'id_part3'];
+      const wrapper = document.querySelector('.id-container-wrapper');
+
+      parts.forEach(id => {
+        const el = document.getElementById(id);
+        el.readOnly = isChecked;
+        el.classList.toggle("bloqueado", isChecked);
+      });
+
+      if (wrapper) wrapper.classList.toggle("bloqueado", isChecked);
+
+      localStorage.setItem('bloqueado_id_emision', isChecked);
+    }
+
+    function actualizarID(forcedAbrev) {
+      const fec = document.getElementById('fecha').value;
+      const dep = document.getElementById('dependencia').value.trim();
+
+      const p1Field = document.getElementById('id_part1');
+      const p2Field = document.getElementById('id_part2');
+      const p3Field = document.getElementById('id_part3');
+      const p4Field = document.getElementById('id_part4');
+
+      // 1. Obtener Sigla (Part 1)
+      let sigla = (typeof forcedAbrev === 'string') ? forcedAbrev : '';
+      if (!sigla && dep && window.abrevMap) {
+        const key = findKeyCaseInsensitive(window.abrevMap, dep);
+        if (key && window.abrevMap[key] && window.abrevMap[key].length > 0) {
+          sigla = window.abrevMap[key][0];
+        }
+      }
+
+      if (sigla) p1Field.value = sigla;
+
+      // 2. Obtener Año (Part 4)
+      let year = fec ? fec.split('-')[0] : '';
+      if (year) p4Field.value = year;
+
+      updateHiddenID();
     }
 
     function ajustarAlturaTitular() {
@@ -1468,6 +1590,35 @@
         document.getElementById(id).value = nota[id];
       });
 
+      // Split id_emision into subfields
+      const idVal = nota.id_emision || '';
+      const parts = idVal.split('/');
+      if (parts.length === 3) {
+        document.getElementById('id_part1').value = parts[0];
+        document.getElementById('id_part4').value = parts[2];
+
+        // Part 2 and 3 are joined: BOL.716
+        // We look for a match from ID.csv in parts[1]
+        const middle = parts[1];
+        const idTypes = JSON.parse(document.getElementById('id_part2').dataset.lista || "[]");
+        let foundType = "";
+        for (const type of idTypes) {
+          if (middle.startsWith(type)) {
+            foundType = type;
+            break;
+          }
+        }
+
+        if (foundType) {
+          document.getElementById('id_part2').value = foundType;
+          document.getElementById('id_part3').value = middle.replace(foundType, '');
+        } else {
+          // If no match, put everything in part 2
+          document.getElementById('id_part2').value = middle;
+          document.getElementById('id_part3').value = '';
+        }
+      }
+
       resetearEstadoEdicion();
 
       // Disparar blur para cargar sugerencias dependientes (Organismo, Firma, Canal)
@@ -1733,6 +1884,14 @@
         autocompletar("organismo", "sugOrg", orgMap[dep] || []);
       });
 
+      // 🌟 CARGA DE ID.csv Y AUTOCOMPLETAR PARA SUB-CAMPOS 🌟
+      const idTypes = await cargarLista(urls.ids_csv);
+      autocompletar("id_part2", "sugIdPart2", idTypes, () => updateHiddenID());
+
+      // Lista de siglas de usuarios para id_part1
+      const siglasUsuarios = Array.from(new Set(Object.values(usuarioDataMap).map(u => u.siglas).filter(s => s))).sort();
+      autocompletar("id_part1", "sugIdPart1", siglasUsuarios, () => updateHiddenID());
+
       const firmaData = await cargarMapa(urls.firmas);
       firmaMap = firmaData.map;
       listasParaValidar.firmas = firmaMap;
@@ -1861,23 +2020,18 @@
         const chk = document.getElementById(`check${id.charAt(0).toUpperCase() + id.slice(1)}`);
         if (chk) {
           chk.checked = localStorage.getItem(`bloqueado_${id}`) === 'true';
-          alternarBloqueo(id);
+          if (id === 'id_emision') {
+            alternarBloqueoID();
+          } else {
+            alternarBloqueo(id);
+          }
         }
       });
 
-      // 🌟 LÓGICA DE SELECCIÓN DE SEGMENTO PARA ID 🌟
-      const idEmisionField = document.getElementById('id_emision');
-      idEmisionField.addEventListener('focus', function () {
-        const val = this.value;
-        const firstSlash = val.indexOf('/');
-        const lastSlash = val.lastIndexOf('/');
-        if (firstSlash !== -1 && lastSlash !== -1 && firstSlash !== lastSlash) {
-          // Selecciona la parte entre las dos barras
-          this.setSelectionRange(firstSlash + 1, lastSlash);
-        } else if (firstSlash !== -1) {
-          // Si solo hay una barra (caso raro pero por si acaso)
-          this.setSelectionRange(firstSlash + 1, val.length);
-        }
+      // Persistencia de subcampos de ID
+      ['id_part1', 'id_part2', 'id_part3', 'id_part4'].forEach(id => {
+        const el = document.getElementById(id);
+        if (localStorage.getItem(id)) el.value = localStorage.getItem(id);
       });
 
       cargarNotasGuardadas();
@@ -2131,6 +2285,17 @@
           check.checked = false;
         }
       });
+
+      // Limpiar subcampos de ID
+      ['id_part1', 'id_part2', 'id_part3', 'id_part4'].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = '';
+        el.classList.remove("bloqueado");
+        el.readOnly = false;
+      });
+      document.getElementById('id_part4').readOnly = true; // Mantener readonly
+      const idWrapper = document.querySelector('.id-container-wrapper');
+      if (idWrapper) idWrapper.classList.remove("bloqueado");
 
       // Limpia sugerencias visibles
       document.querySelectorAll(".sugerencias").forEach(div => div.innerHTML = "");
