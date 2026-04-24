@@ -282,19 +282,22 @@
             gap: 15px;
             padding: 20px;
         }
+
         .titular-card {
             background: white;
             border: 1px solid #eee;
             border-radius: 8px;
             padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            aspect-ratio: 1 / 1; /* Cuadradas */
+            aspect-ratio: 1 / 1;
+            /* Cuadradas */
             overflow: hidden;
             position: relative;
         }
+
         .titular-title {
             font-weight: bold;
             color: var(--guinda);
@@ -306,10 +309,12 @@
             overflow: hidden;
             line-height: 1.4;
         }
+
         .titular-title.expanded {
             -webkit-line-clamp: unset;
             overflow: visible;
         }
+
         .titular-meta {
             font-size: 11px;
             color: #666;
@@ -317,11 +322,13 @@
             flex-direction: column;
             gap: 5px;
         }
+
         .titular-meta i {
             color: var(--dorado);
             width: 14px;
             margin-right: 4px;
         }
+
         .btn-more {
             color: var(--dorado);
             cursor: pointer;
@@ -330,6 +337,7 @@
             margin-top: 5px;
             text-decoration: underline;
         }
+
         .titular-id {
             background: #f0f0f0;
             padding: 2px 6px;
@@ -340,20 +348,23 @@
             display: inline-block;
             margin-bottom: 5px;
         }
-        
+
         /* Estilos para Tabla de Comunicados */
         .table-comunicados tbody tr {
             border-bottom: 1px solid #eee;
             transition: background 0.2s;
         }
+
         .table-comunicados tbody tr:hover {
             background: #fdfdfd;
         }
+
         .table-comunicados td {
             padding: 12px 20px;
             font-size: 13px;
             color: #333;
         }
+
         .table-comunicados .impact-cell {
             text-align: right;
             font-weight: bold;
@@ -392,8 +403,11 @@
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
-                    <input type="checkbox" id="chk-oficial" onchange="updateFilters()" style="width:auto; cursor:pointer;">
-                    <label for="chk-oficial" style="margin:0; cursor:pointer; font-size:12px; color:#555; text-transform:none;">Información oficial</label>
+                    <input type="checkbox" id="chk-oficial" onchange="updateFilters()"
+                        style="width:auto; cursor:pointer;">
+                    <label for="chk-oficial"
+                        style="margin:0; cursor:pointer; font-size:12px; color:#555; text-transform:none;">Información
+                        oficial</label>
                 </div>
             </div>
 
@@ -481,17 +495,24 @@
 
             <div class="charts-row">
                 <div class="card full elastic"><canvas id="g_butterfly"></canvas></div>
-                
-                <div class="card full" style="padding:0; overflow:hidden; display:flex; flex-direction:column; max-height:400px; border-top: 3px solid var(--dorado);">
-                    <div style="padding: 15px 20px; background: #fff; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;">
-                        <h3 style="margin: 0; color: var(--guinda); font-size: 15px;"><i class="fa-solid fa-list" style="color:var(--dorado); margin-right:8px;"></i>Listado de Comunicados</h3>
+
+                <div class="card full"
+                    style="padding:0; overflow:hidden; display:flex; flex-direction:column; max-height:400px; border-top: 3px solid var(--dorado);">
+                    <div
+                        style="padding: 15px 20px; background: #fff; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;">
+                        <h3 style="margin: 0; color: var(--guinda); font-size: 15px;"><i class="fa-solid fa-list"
+                                style="color:var(--dorado); margin-right:8px;"></i>Listado de Comunicados</h3>
                     </div>
                     <div style="flex: 1; overflow-y: auto;">
                         <table class="table-comunicados" style="width: 100%; border-collapse: collapse;">
                             <thead style="position: sticky; top: 0; background: #f8f9fa; z-index: 5;">
                                 <tr>
-                                    <th style="text-align: left; padding: 12px 20px; color: #555; font-size: 12px; border-bottom: 2px solid #ddd; text-transform: uppercase;">Titular del Comunicado</th>
-                                    <th style="text-align: right; padding: 12px 20px; color: #555; font-size: 12px; border-bottom: 2px solid #ddd; width: 150px; text-transform: uppercase;">Trazabilidad</th>
+                                    <th
+                                        style="text-align: left; padding: 12px 20px; color: #555; font-size: 12px; border-bottom: 2px solid #ddd; text-transform: uppercase;">
+                                        Titular del Comunicado</th>
+                                    <th
+                                        style="text-align: right; padding: 12px 20px; color: #555; font-size: 12px; border-bottom: 2px solid #ddd; width: 150px; text-transform: uppercase;">
+                                        Trazabilidad</th>
                                 </tr>
                             </thead>
                             <tbody id="table-comunicados-body">
@@ -529,7 +550,7 @@
     </div>
 
     <script>
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTlpktxpGxd__D3mJ4os7JSQOhBrtU6m4IeCX23GpHlI5e5U4l27kKtoDSggw3niY8lqZcL_rCHV8Q/pub?gid=0&single=true&output=csv';
+        const CSV_URL = 'https://script.google.com/a/macros/hidalgo.gob.mx/s/AKfycbxHEjYl559oTvWxiQ8PMjptLOsHJ_EFoXCI4MCEZ-QKpG5HWOYKttlic4zTSnJje5Fo/exec';
         let rData = [];
         let vCharts = {};
         const vColsHierarchy = ["Estatus", "Dependencia", "ID_Emision", "Canal", "Medio", "Municipio", "Organismo", "Género"];
@@ -913,7 +934,7 @@
                 card.style.minHeight = "280px";
 
                 const rend = totalUniqueMedia > 0 ? ((g.media.size / totalUniqueMedia) * 100).toFixed(1) : 0;
-                
+
                 let titlesHtml = "";
                 g.items.forEach((item, iIdx) => {
                     const uniqueId = `tit-${gIdx}-${iIdx}`;
@@ -982,9 +1003,9 @@
                 if (id === "N/A" || id.trim() === "") return;
 
                 if (!grouped[id]) grouped[id] = { mentions: 0, titulares: {} };
-                
+
                 grouped[id].mentions++;
-                
+
                 const titular = d.titular && d.titular.trim() ? d.titular.trim() : "(Sin titular)";
                 grouped[id].titulares[titular] = (grouped[id].titulares[titular] || 0) + 1;
             });
@@ -994,14 +1015,14 @@
                 const titularesObj = grouped[id].titulares;
                 let maxCount = 0;
                 let topTitular = "(Sin titular)";
-                
+
                 for (const [tit, count] of Object.entries(titularesObj)) {
                     if (count > maxCount) {
                         maxCount = count;
                         topTitular = tit;
                     }
                 }
-                
+
                 return {
                     id: id,
                     titular: topTitular,
@@ -1029,7 +1050,7 @@
                     </tr>
                 `;
             });
-            
+
             tbody.innerHTML = html;
         }
 
@@ -1041,12 +1062,12 @@
             data.forEach(d => {
                 const dep = d.dependencia || "N/A";
                 const id = d.id_emision || "N/A";
-                
+
                 // Excluir elementos sin dependencia o sin ID válido (N/A o vacío)
                 if (dep === "N/A" || id === "N/A" || id.trim() === "") return;
-                
+
                 if (!grouped[dep]) grouped[dep] = { ids: new Set(), mentions: 0 };
-                
+
                 grouped[dep].ids.add(id);
                 grouped[dep].mentions++;
             });
@@ -1057,14 +1078,14 @@
 
             const maxIds = Math.max(...finalData.map(x => x[1].ids.size), 1);
             const maxMentions = Math.max(...finalData.map(x => x[1].mentions), 1);
-            
+
             // Factor de escala para que las barras de IDs (usualmente menores) sean visualmente comparables
             const scaleFactor = maxMentions / maxIds;
             const gap = maxMentions * 0.5; // Espacio central para las etiquetas
             const padding = maxMentions * 0.2; // Espacio exterior para datalabels
 
             const labels = finalData.map(x => x[0]);
-            
+
             // Arrays de formato {x: [min, max], y, realValue} para barras flotantes
             const floatingIdsData = finalData.map(x => {
                 const visualSize = x[1].ids.size * scaleFactor;
@@ -1153,12 +1174,12 @@
                         ctx.textBaseline = 'middle';
                         ctx.fillStyle = '#611232';
                         ctx.font = 'bold 12px sans-serif';
-                        
+
                         y.getTicks().forEach((tick, index) => {
                             const yPos = y.getPixelForTick(index);
                             const xPos = x.getPixelForValue(0);
                             const label = labels[index];
-                            
+
                             // Ya no es necesario el fondo blanco porque las barras están separadas
                             ctx.fillText(label, xPos, yPos);
                         });
@@ -1299,7 +1320,7 @@
             const summary = document.createElement('div');
             summary.style = "padding: 30px; border-bottom: 2px solid #611232; margin-bottom: 25px; font-family: 'Segoe UI', sans-serif;";
             const depLabel = f.Dependencia.length > 0 ? (f.Dependencia.length > 5 ? `${f.Dependencia.length} selecc.` : f.Dependencia.join(', ')) : "Todas";
-            
+
             let dateLabel = f.FechaRange === "Todos" ? "Todo el histórico" : f.FechaRange;
             if (f.FechaStart && f.FechaEnd) {
                 dateLabel = `${f.FechaStart.toLocaleDateString()} - ${f.FechaEnd.toLocaleDateString()}`;
