@@ -391,6 +391,10 @@
                         </select>
                     </div>
                 </div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+                    <input type="checkbox" id="chk-oficial" onchange="updateFilters()" style="width:auto; cursor:pointer;">
+                    <label for="chk-oficial" style="margin:0; cursor:pointer; font-size:12px; color:#555; text-transform:none;">Información oficial</label>
+                </div>
             </div>
 
             <div id="f-cont">
@@ -683,6 +687,9 @@
 
                 // Lógica de filtrado cruzado: para cada filtro, mostrar opciones basadas en los DEMÁS filtros activos
                 let sourceItems = rData.filter(d => {
+                    // Filtrar por información oficial si el checkbox está activo
+                    if (f.OficialOnly && (String(d.id_emision || "N/A") === "N/A" || String(d.id_emision || "").trim() === "")) return false;
+
                     // Filtrar por Fecha
                     if (f.FechaStart && d._date < f.FechaStart) return false;
                     if (f.FechaEnd && d._date > f.FechaEnd) return false;
@@ -751,7 +758,8 @@
             let state = {
                 FechaRange: rangeSelect,
                 FechaStart: start,
-                FechaEnd: end
+                FechaEnd: end,
+                OficialOnly: document.getElementById('chk-oficial').checked
             };
 
             vColsHierarchy.forEach(col => {
@@ -767,6 +775,7 @@
             try {
                 const f = getCurrentFilterState();
                 const fil = rData.filter(d => {
+                    if (f.OficialOnly && (String(d.id_emision || "N/A") === "N/A" || String(d.id_emision || "").trim() === "")) return false;
                     if (f.FechaStart && d._date < f.FechaStart) return false;
                     if (f.FechaEnd && d._date > f.FechaEnd) return false;
                     return vColsHierarchy.every(col => {
@@ -846,6 +855,7 @@
 
             // Dataset filtrado SOLO por Fecha, Dependencia y Canal para el gráfico de Rendimiento
             const rendData = rData.filter(d => {
+                if (f.OficialOnly && (String(d.id_emision || "N/A") === "N/A" || String(d.id_emision || "").trim() === "")) return false;
                 if (f.FechaStart && d._date < f.FechaStart) return false;
                 if (f.FechaEnd && d._date > f.FechaEnd) return false;
                 const depVal = f.Dependencia;
