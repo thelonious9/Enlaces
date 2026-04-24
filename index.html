@@ -1291,6 +1291,7 @@
     function actualizarID(forcedAbrev) {
       const fec = document.getElementById('fecha').value;
       const dep = document.getElementById('dependencia').value.trim();
+      const usuarioVal = document.getElementById('usuario').value.trim();
 
       const p1Field = document.getElementById('id_part1');
       const p2Field = document.getElementById('id_part2');
@@ -1299,6 +1300,19 @@
 
       // 1. Obtener Sigla (Part 1)
       let sigla = (typeof forcedAbrev === 'string') ? forcedAbrev : '';
+      
+      // Priorizar la sigla del Usuario si está definido
+      if (!sigla && usuarioVal) {
+        const uMapStr = document.getElementById('usuario').dataset.map;
+        if (uMapStr) {
+          const uMap = JSON.parse(uMapStr);
+          const uKey = findKeyCaseInsensitive(uMap, usuarioVal);
+          if (uKey && uMap[uKey].siglas) {
+            sigla = uMap[uKey].siglas;
+          }
+        }
+      }
+
       if (!sigla && dep && window.abrevMap) {
         const key = findKeyCaseInsensitive(window.abrevMap, dep);
         if (key && window.abrevMap[key] && window.abrevMap[key].length > 0) {
@@ -1859,16 +1873,17 @@
       window.abrevMap = abrevData.map;
 
       const usuarioDataRaw = limpiarFilasCSV(await cargarCSV(urls.usuarios));
-      const usuarioDataMap = {};
+      window.usuarioDataMap = {}; // Hacer global
       const usuariosClaves = [];
       usuarioDataRaw.forEach(([user, dep, sig]) => {
         if (!user) return;
-        usuarioDataMap[user] = { dependencia: dep || '', siglas: sig || '' };
+        window.usuarioDataMap[user] = { dependencia: dep || '', siglas: sig || '' };
         usuariosClaves.push(user);
       });
+      document.getElementById('usuario').dataset.map = JSON.stringify(window.usuarioDataMap);
 
       autocompletar("usuario", "sugUsuario", usuariosClaves, user => {
-        const uData = usuarioDataMap[user];
+        const uData = window.usuarioDataMap[user];
         if (uData) {
           if (uData.dependencia) {
             document.getElementById("dependencia").value = uData.dependencia;
@@ -1889,7 +1904,7 @@
       autocompletar("id_part2", "sugIdPart2", idTypes, () => updateHiddenID());
 
       // Lista de siglas de usuarios para id_part1
-      const siglasUsuarios = Array.from(new Set(Object.values(usuarioDataMap).map(u => u.siglas).filter(s => s))).sort();
+      const siglasUsuarios = Array.from(new Set(Object.values(window.usuarioDataMap).map(u => u.siglas).filter(s => s))).sort();
       autocompletar("id_part1", "sugIdPart1", siglasUsuarios, () => updateHiddenID());
 
       const firmaData = await cargarMapa(urls.firmas);
@@ -1918,10 +1933,10 @@
       // Blur events for usuario, dependencia and medio
       document.getElementById("usuario").addEventListener("blur", (e) => {
         const val = e.target.value.trim();
-        const key = findKeyCaseInsensitive(usuarioDataMap, val);
+        const key = findKeyCaseInsensitive(window.usuarioDataMap, val);
         if (key) {
           e.target.value = key;
-          const uData = usuarioDataMap[key];
+          const uData = window.usuarioDataMap[key];
           if (uData.dependencia) {
             document.getElementById("dependencia").value = uData.dependencia;
             document.getElementById("dependencia").dispatchEvent(new Event('blur'));
