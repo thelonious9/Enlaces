@@ -1259,9 +1259,18 @@
       const p4 = document.getElementById('id_part4').value.trim();
       const inputID = document.getElementById('id_emision');
 
+      // Si el Tipo es "N/A" o "NA", el Num no es obligatorio
+      if (p2.toUpperCase() === 'N/A' || p2.toUpperCase() === 'NA') {
+        document.getElementById('id_part3').removeAttribute('required');
+      } else {
+        document.getElementById('id_part3').setAttribute('required', 'required');
+      }
+
       // Formato: Part1 / Part2Part3 / Part4
       if (p1 || p2 || p3 || p4) {
-        inputID.value = `${p1}/${p2}${p3}/${p4}`;
+        // Combinar p2 y p3, eliminando espacios vacíos si los hay
+        let p2p3 = `${p2}${p3}`.trim();
+        inputID.value = `${p1}/${p2p3}/${p4}`;
         localStorage.setItem('id_emision', inputID.value);
         // Persistir también las partes para que no se pierdan al recargar
         localStorage.setItem('id_part1', p1);
@@ -2132,7 +2141,12 @@
           e.preventDefault(); // Evita la acción predeterminada
 
           const activeElement = document.activeElement;
-          const campoId = activeElement.id;
+          let campoId = activeElement.id;
+
+          // Mapear partes del ID al ID principal para el bloqueo
+          if (campoId === 'id_part1' || campoId === 'id_part2' || campoId === 'id_part3') {
+            campoId = 'id_emision';
+          }
 
           // Verifica si el campo activo es un INPUT de texto o fecha O un TEXTAREA Y si está en la lista de campos bloqueables
           if ((activeElement.tagName === 'INPUT' && (activeElement.type === 'text' || activeElement.type === 'date') || activeElement.tagName === 'TEXTAREA') && CAMPOS_CON_BLOQUEO.includes(campoId)) {
@@ -2143,7 +2157,12 @@
             // Si el checkbox existe, alterna su estado y aplica el bloqueo/desbloqueo
             if (checkbox) {
               checkbox.checked = !checkbox.checked; // Alterna el estado
-              alternarBloqueo(campoId);            // Aplica el bloqueo/desbloqueo
+              
+              if (campoId === 'id_emision') {
+                alternarBloqueoID();
+              } else {
+                alternarBloqueo(campoId);
+              }
 
               // Vuelve a enfocar el campo para conservar el foco
               activeElement.focus();
