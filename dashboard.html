@@ -132,7 +132,7 @@
 
         .kpi-container {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 10px;
         }
 
@@ -182,6 +182,15 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .kpi-card .desc {
+            font-size: 9px;
+            color: #aaa;
+            margin-top: 6px;
+            line-height: 1.2;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 4px;
         }
 
         .charts-row {
@@ -376,8 +385,8 @@
 
 <body>
     <div class="header">
-        <h2><i class="fa-solid fa-chart-pie"></i> Dashboard de Comunicados — <span
-                style="color:var(--dorado)">GEH</span></h2>
+        <h2><i class="fa-solid fa-chart-pie"></i> Dashboard de Comunicados <span id="dash-subtitle"
+                style="color:var(--dorado)"></span></h2>
         <div class="header-btns">
             <button class="btn-header" onclick="genPDF()"><i class="fa-solid fa-file-pdf"></i> Descargar Reporte
                 (PDF)</button>
@@ -463,33 +472,51 @@
             <div class="kpi-container">
                 <div class="kpi-card" id="card-rendimiento">
                     <h4>Rendimiento</h4>
-                    <div class="val" id="kpi-rendimiento">0%</div>
-                    <div class="sub" id="kpi-rendimiento-val">0 medios</div>
+                    <div class="val" id="kpi-rendimiento">0.0</div>
+                    <div class="sub" id="kpi-rendimiento-sub">Impactos por comunicado</div>
+                    <div class="desc">Promedio de publicaciones obtenidas por cada comunicado emitido.</div>
+                </div>
+                <div class="kpi-card" id="card-eficacia">
+                    <h4>Eficacia Relativa</h4>
+                    <div class="val" id="kpi-eficacia">0%</div>
+                    <div class="sub" id="kpi-eficacia-sub">Cuota de impacto</div>
+                    <div class="desc">Participación porcentual de la cobertura en relación al impacto total.</div>
+                </div>
+                <div class="kpi-card" id="card-aprovechamiento">
+                    <h4>Índice de Aprovechamiento</h4>
+                    <div class="val" id="kpi-aprovechamiento">0.00</div>
+                    <div class="sub" id="kpi-aprovechamiento-sub">Nivel de desempeño</div>
+                    <div class="desc">Desempeño de la comunicación comparado con el promedio global.</div>
                 </div>
                 <div class="kpi-card" id="card-total">
                     <h4>Total Emisiones</h4>
                     <div class="val" id="kpi-total">0</div>
                     <div class="sub" id="kpi-total-sub">Todas</div>
+                    <div class="desc">Volumen total de impactos logrados en medios de comunicación.</div>
                 </div>
                 <div class="kpi-card" id="card-dep">
                     <h4>Top Dependencia</h4>
                     <div class="val" id="kpi-dep">-</div>
                     <div class="sub" id="kpi-dep-val">0 menciones</div>
+                    <div class="desc">Área con mayor presencia mediática en el periodo.</div>
                 </div>
                 <div class="kpi-card" id="card-tema">
                     <h4>Top Tema</h4>
                     <div class="val" id="kpi-tema">-</div>
                     <div class="sub" id="kpi-tema-val">0 menciones</div>
+                    <div class="desc">Asunto o mensaje con mayor alcance en la agenda pública.</div>
                 </div>
                 <div class="kpi-card" id="card-mun">
                     <h4>Top Municipio</h4>
                     <div class="val" id="kpi-mun">-</div>
                     <div class="sub" id="kpi-mun-val">0 menciones</div>
+                    <div class="desc">Zona geográfica con mayor registro de cobertura informativa.</div>
                 </div>
                 <div class="kpi-card" id="card-medio">
                     <h4>Medio Principal</h4>
                     <div class="val" id="kpi-medio">-</div>
                     <div class="sub" id="kpi-medio-val">0% del total</div>
+                    <div class="desc">Empresa periodística con mayor volumen de difusión.</div>
                 </div>
             </div>
 
@@ -795,11 +822,18 @@
         function applyFilters() {
             try {
                 const f = getCurrentFilterState();
-                const fil = rData.filter(d => {
+                // globalData: Solo aplica filtros de Fecha, Estatus y Oficial (ignora Dependencia, ID, Canal, etc.)
+                const globalData = rData.filter(d => {
                     if (f.OficialOnly && (String(d.id_emision || "N/A") === "N/A" || String(d.id_emision || "").trim() === "")) return false;
                     if (f.FechaStart && d._date < f.FechaStart) return false;
                     if (f.FechaEnd && d._date > f.FechaEnd) return false;
+                    if (f.Estatus !== "Todos" && String(d.estatus || "N/A") !== f.Estatus) return false;
+                    return true;
+                });
+
+                const fil = globalData.filter(d => {
                     return vColsHierarchy.every(col => {
+                        if (col === "Estatus") return true; // Ya filtrado en globalData
                         const val = f[col];
                         if (val === "Todos" || (Array.isArray(val) && val.length === 0)) return true;
                         const dVal = String(d[col.toLowerCase()] || "N/A");
@@ -807,7 +841,7 @@
                     });
                 });
 
-                renderKPIs(fil, f);
+                renderKPIs(fil, f, globalData);
                 let palette = paletteDefault;
                 if (f.Estatus === "Positiva") palette = palettePos;
                 else if (f.Estatus === "Negativa") palette = paletteNeg;
@@ -819,7 +853,16 @@
             }
         }
 
-        function renderKPIs(data, f) {
+        function renderKPIs(data, f, globalData) {
+            // Actualizar título dinámico
+            const subTitleEl = document.getElementById('dash-subtitle');
+            if (f.Dependencia && f.Dependencia.length > 0) {
+                const depNames = f.Dependencia.length > 2 ? `— ${f.Dependencia.length} dependencias` : `— ${f.Dependencia.join(', ')}`;
+                subTitleEl.innerText = depNames;
+            } else {
+                subTitleEl.innerText = '';
+            }
+
             document.getElementById('kpi-total').innerText = data.length.toLocaleString();
 
             // Subtítulo de Total Emisiones
@@ -828,12 +871,26 @@
                 : "Todas";
             document.getElementById('kpi-total-sub').innerText = subTotal;
 
-            // Cálculos para Rendimiento
-            const totalUniqueMedia = new Set(rData.map(d => d.medio || "N/A")).size;
-            const currentUniqueMedia = new Set(data.map(d => d.medio || "N/A")).size;
-            const rendimientoPct = totalUniqueMedia > 0 ? ((currentUniqueMedia / totalUniqueMedia) * 100).toFixed(1) : 0;
-            document.getElementById('kpi-rendimiento').innerText = `${rendimientoPct}%`;
-            document.getElementById('kpi-rendimiento-val').innerText = `${currentUniqueMedia} medios reproducen el comunicado`;
+            // Cálculos para Rendimiento e Impacto
+            const uniqueIDs = (ds) => new Set(ds.map(d => d.id_emision || "N/A").filter(id => id !== "N/A" && id.trim() !== "")).size;
+            
+            const idsData = uniqueIDs(data);
+            const rendData = idsData > 0 ? (data.length / idsData) : 0;
+            
+            document.getElementById('kpi-rendimiento').innerText = rendData.toFixed(2);
+            document.getElementById('kpi-rendimiento-sub').innerText = `${data.length} impactos en ${idsData} comunicados`;
+
+            // Eficacia Relativa = (Impactos Area / Impactos Global) * 100
+            const eficacia = globalData.length > 0 ? ((data.length / globalData.length) * 100).toFixed(1) : 0;
+            document.getElementById('kpi-eficacia').innerText = `${eficacia}%`;
+            document.getElementById('kpi-eficacia-sub').innerText = `${data.length} de ${globalData.length} impactos`;
+
+            // Índice de Aprovechamiento = Rendimiento Area / Rendimiento Global
+            const idsGlobal = uniqueIDs(globalData);
+            const rendGlobal = idsGlobal > 0 ? (globalData.length / idsGlobal) : 0;
+            const aprovechamiento = rendGlobal > 0 ? (rendData / rendGlobal).toFixed(2) : "0.00";
+            document.getElementById('kpi-aprovechamiento').innerText = aprovechamiento;
+            document.getElementById('kpi-aprovechamiento-sub').innerText = rendGlobal > 0 ? `Global: ${rendGlobal.toFixed(2)}` : "Sin global";
 
             const getTop = (key) => {
                 const counts = {};
