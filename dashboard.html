@@ -627,7 +627,7 @@
     </div>
 
     <script>
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/1XL7uMG8wTbEi3FRaHFLVFI_LwAdWGZ1DqQekahEAUow/export?format=csv&gid=0';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxDq6NSZKabgFR3yqSPv7PBqet4b7jIcqb34KIgD3GnAC4aUBF8ALdytkXtJ-88xGLZ/exec';
         let rData = [];
         let vCharts = {};
         const vColsHierarchy = ["Estatus", "Dependencia", "ID_Emision", "Canal", "Medio", "Municipio", "Organismo", "Género"];
@@ -639,27 +639,28 @@
         async function start() {
             const dash = document.getElementById('dash');
             try {
-                // Cache-busting para forzar actualización de Google Sheets
-                const bust = `&cb=${new Date().getTime()}`;
-                const response = await fetch(CSV_URL + bust);
+                // Fetch de datos desde la App Script API (formato JSON)
+                const response = await fetch(API_URL);
                 if (!response.ok) throw new Error("Error en respuesta de red");
 
-                const buffer = await response.arrayBuffer();
-                const csvText = new TextDecoder('utf-8').decode(buffer);
-                const parsed = parseCSV(csvText);
+                const rawData = await response.json();
+                const parsed = normalizeData(rawData);
 
                 rData = parsed.map(d => {
                     if (!d.fecha) return null;
-                    // Intentar parsear fecha YYYY-MM-DD o DD/MM/YYYY
-                    let dateObj;
-                    if (d.fecha.includes('-')) {
-                        const parts = d.fecha.split('-');
-                        dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                    } else if (d.fecha.includes('/')) {
-                        const parts = d.fecha.split('/');
-                        dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
-                    } else {
-                        dateObj = new Date(d.fecha);
+                    
+                    // Intentar parsear fecha (maneja ISO, YYYY-MM-DD, DD/MM/YYYY)
+                    let dateObj = new Date(d.fecha);
+                    
+                    // Fallback si el constructor falla o es un formato manual
+                    if (isNaN(dateObj.getTime())) {
+                        if (d.fecha.includes('-')) {
+                            const parts = d.fecha.split(/[-T :]/);
+                            dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                        } else if (d.fecha.includes('/')) {
+                            const parts = d.fecha.split('/');
+                            dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                        }
                     }
 
                     if (isNaN(dateObj.getTime())) return null;
@@ -696,13 +697,7 @@
             }
         }
 
-        function parseCSV(text) {
-            const lines = text.split(/\r?\n/);
-            if (lines.length < 2) return [];
-            const headerLine = lines[0].replace(/^\uFEFF/, "").split(',');
-            const headers = headerLine.map(h => h.trim().replace(/"/g, '').toLowerCase());
-
-            // Mapeo flexible para asegurar que encontremos las columnas correctas
+        function normalizeData(rawData) {
             const keyMap = {
                 'id': 'id_emision',
                 'id_emision': 'id_emision',
@@ -727,29 +722,19 @@
                 'clave emision': 'clave'
             };
 
-            const data = [];
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                const values = [];
-                let current = '', inQuotes = false;
-                for (let char of line) {
-                    if (char === '"') inQuotes = !inQuotes;
-                    else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
-                    else current += char;
-                }
-                values.push(current.trim());
+            return rawData.map(item => {
                 const row = {};
-                headers.forEach((h, idx) => {
-                    const mappedKey = keyMap[h] || h;
-                    let val = (values[idx] || '').replace(/^"|"$/g, '').replace(/""/g, '"').trim();
+                for (let key in item) {
+                    const lowerKey = key.trim().toLowerCase();
+                    const mappedKey = keyMap[lowerKey] || lowerKey;
+                    let val = String(item[key] || '').trim();
+                    
                     // Normalizar ID (MAYÚSCULAS y sin espacios) para evitar duplicados por inconsistencias
                     if (mappedKey === 'id_emision') val = val.toUpperCase().replace(/\s+/g, '');
                     row[mappedKey] = val;
-                });
-                data.push(row);
-            }
-            return data;
+                }
+                return row;
+            });
         }
 
         function handleDateRangeChange() {
