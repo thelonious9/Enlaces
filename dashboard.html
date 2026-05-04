@@ -748,7 +748,7 @@
             const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
             d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
             const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            return `${d.getUTCFullYear()}-W${String(Math.ceil((((d - yearStart) / 86400000) + 1) / 7)).padStart(2, '0')}`;
+            return `${d.getUTCFullYear()}-Sem${String(Math.ceil((((d - yearStart) / 86400000) + 1) / 7)).padStart(2, '0')}`;
         }
 
         function initFilterStructure() {
@@ -1408,14 +1408,35 @@
             const sorted = Object.keys(counts).sort();
             if (vCharts['g_timeline']) vCharts['g_timeline'].destroy();
             vCharts['g_timeline'] = new Chart(ctx, {
-                type: 'line',
-                data: { labels: sorted.map(k => counts[k].label), datasets: [{ label: 'Emisiones', data: sorted.map(k => counts[k].val), borderColor: '#611232', backgroundColor: 'rgba(97, 18, 50, 0.1)', fill: true, tension: 0.3 }] },
+                type: 'bar',
+                data: { 
+                    labels: sorted.map(k => counts[k].label), 
+                    datasets: [{ 
+                        label: 'Emisiones', 
+                        data: sorted.map(k => counts[k].val), 
+                        backgroundColor: '#611232',
+                        hoverBackgroundColor: '#A57F2C',
+                        borderWidth: 0
+                    }] 
+                },
                 options: {
                     plugins: {
                         title: { display: true, text: title, color: '#611232', font: { size: 15, weight: 'bold' } },
-                        datalabels: { color: '#611232', anchor: 'end', align: 'top', offset: 5, font: { weight: 'bold', size: 11 }, formatter: (val) => val.toLocaleString() }
+                        datalabels: { 
+                            color: '#611232', 
+                            anchor: 'end', 
+                            align: 'top', 
+                            offset: 5, 
+                            font: { weight: 'bold', size: 11 }, 
+                            formatter: (val) => val.toLocaleString() 
+                        },
+                        legend: { display: false }
                     },
-                    maintainAspectRatio: false, scales: { y: { beginAtZero: true } }
+                    maintainAspectRatio: false, 
+                    scales: { 
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true } 
+                    }
                 }
             });
         }
