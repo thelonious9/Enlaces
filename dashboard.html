@@ -391,7 +391,7 @@
                     class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between">
                     <div class="absolute left-0 top-0 w-1 h-full bg-secondary"></div>
                     <div class="flex justify-between items-start">
-                        <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Medio Principal
+                        <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Medio con mayor difusión
                         </p>
                         <span class="material-icons text-secondary text-base lg:text-lg">newspaper</span>
                     </div>
@@ -408,14 +408,18 @@
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
                     <div
                         class="col-span-1 lg:col-span-8 bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <div class="flex flex-col justify-center items-center gap-2 mb-6">
                             <h3 class="text-xs lg:text-sm font-bold text-primary uppercase flex items-center gap-2">
                                 <span class="material-icons">compare_arrows</span>
                                 Productividad por Dependencia
                             </h3>
-                            <div class="flex items-center gap-2 text-[10px] font-bold">
-                                <span class="w-3 h-3 bg-secondary rounded"></span> Esfuerzo
-                                <span class="w-3 h-3 bg-primary rounded ml-2"></span> Impacto
+                            <div class="flex items-center gap-4 text-[10px] font-bold">
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3 h-3 bg-secondary rounded"></span> Comunicados
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3 h-3 bg-primary rounded"></span> Reproducción en medios
+                                </div>
                             </div>
                         </div>
                         <div class="h-[300px] lg:h-[400px] elastic">
@@ -424,7 +428,7 @@
                     </div>
                     <div
                         class="col-span-1 lg:col-span-4 bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm">
-                        <h3 class="text-xs lg:text-sm font-bold text-primary uppercase mb-6">Estado de Sentimiento</h3>
+                        <h3 class="text-xs lg:text-sm font-bold text-primary uppercase mb-6 text-center">Sentimiento</h3>
                         <div class="h-[250px] lg:h-[300px]">
                             <canvas id="g_doughnut"></canvas>
                         </div>
@@ -434,7 +438,7 @@
                                 <div class="text-xs lg:text-sm font-bold" id="pct-pos">0%</div>
                             </div>
                             <div class="text-center p-2 bg-surface-container-low rounded">
-                                <div class="text-[9px] lg:text-[10px] font-bold text-[#ffb703]">INFO</div>
+                                <div class="text-[9px] lg:text-[10px] font-bold text-[#ffb703]">INF</div>
                                 <div class="text-xs lg:text-sm font-bold" id="pct-inf">0%</div>
                             </div>
                             <div class="text-center p-2 bg-surface-container-low rounded">
@@ -845,7 +849,7 @@
             } catch (e) {
                 console.error(e);
             }
-            renderTable(partialData);
+            renderTable(filtered);
             renderFichasTable(filtered);
 
             const timelineRangeLabel = document.getElementById('timeline-period-label');
@@ -913,7 +917,7 @@
 
         function renderCharts(data, partialData, f) {
             renderButterflyChart(partialData, f.Limit, f.Mode);
-            renderChart('g_doughnut', data, 'estatus', 'Estado de Sentimiento', 'doughnut', 15, 'top');
+            renderChart('g_doughnut', data, 'estatus', 'Sentimiento', 'doughnut', 15, 'top');
             renderMediosProdChart(data, f.Limit, f.Mode);
 
             renderChart('g_dep', data, 'dependencia', 'Impacto por Dependencia', 'bar_stacked', f.Limit, f.Mode);
@@ -958,10 +962,13 @@
             const labels = finalData.map(x => x[0]);
             const maxIds = Math.max(...finalData.map(x => x[1].ids.size), 1);
             const maxMentions = Math.max(...finalData.map(x => x[1].mentions), 1);
-            const scaleFactor = maxMentions / maxIds;
-            const gap = maxMentions * 0.5, padding = maxMentions * 0.2;
+            
+            // Calculando el máximo dinámico para simetría exacta
+            const maxVal = Math.max(maxIds, maxMentions);
+            const gap = maxVal * 0.45; // Espacio central para etiquetas
+            const padding = maxVal * 0.1;
 
-            const floatingIdsData = finalData.map(x => ({ x: [-(x[1].ids.size * scaleFactor) - gap, -gap], y: x[0], realValue: x[1].ids.size }));
+            const floatingIdsData = finalData.map(x => ({ x: [-x[1].ids.size - gap, -gap], y: x[0], realValue: x[1].ids.size }));
             const floatingMentionsData = finalData.map(x => ({ x: [gap, x[1].mentions + gap], y: x[0], realValue: x[1].mentions }));
 
             if (vCharts['g_butterfly']) vCharts['g_butterfly'].destroy();
@@ -975,11 +982,16 @@
                         tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${Math.round(c.raw.realValue)}` } },
                         datalabels: {
                             color: '#444', anchor: (c) => c.datasetIndex === 0 ? 'start' : 'end', align: (c) => c.datasetIndex === 0 ? 'start' : 'end', offset: 6,
-                            font: { weight: 'bold', size: 11 }, formatter: (v) => v.realValue > 0 ? Math.round(v.realValue) : ''
+                            font: { weight: 'bold', size: 10 }, 
+                            formatter: (v) => {
+                                // Aseguramos usar valor absoluto para evitar signos negativos
+                                const val = Math.abs(v.realValue);
+                                return val > 0 ? Math.round(val) : '';
+                            }
                         }
                     },
                     scales: {
-                        x: { min: -maxMentions - gap - padding, max: maxMentions + gap + padding, ticks: { display: false }, grid: { display: false }, border: { display: false } },
+                        x: { min: -maxVal - gap - padding, max: maxVal + gap + padding, ticks: { display: false }, grid: { display: false }, border: { display: false } },
                         y: { ticks: { display: false }, grid: { display: false }, border: { display: false } }
                     }
                 },
@@ -1054,8 +1066,12 @@
             vCharts['g_timeline'] = new Chart(ctx, {
                 type: timelineType, data: {
                     labels: sortedLabels.map(l => {
-                        const p = l.split('-');
-                        return `${p[2]}/${["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][parseInt(p[1]) - 1]}/${p[0].slice(-2)}`;
+                        const date = new Date(l + "T12:00:00");
+                        const day = date.toLocaleDateString('es-ES', { weekday: 'short' }).toLowerCase();
+                        const d = date.getDate();
+                        const month = date.toLocaleDateString('es-ES', { month: 'short' }).toLowerCase().replace('.', '');
+                        const year = String(date.getFullYear()).slice(-2);
+                        return `${day} ${d} ${month} ${year}`;
                     }), datasets: [{ label: 'Impactos', data: sortedLabels.map(l => counts[l]), backgroundColor: '#611232', borderColor: '#611232', fill: true, tension: 0.4 }]
                 },
                 options: {
@@ -1068,7 +1084,10 @@
                             align: 'top',
                             color: '#611232',
                             font: { weight: 'bold', size: 9 },
-                            formatter: (v) => v > 0 ? v : ''
+                            formatter: (v, context) => {
+                                if (context.chart.data.labels.length > 20 && v === 0) return '';
+                                return v;
+                            }
                         }
                     },
                     scales: {
@@ -1092,7 +1111,7 @@
             const grouped = {}; data.forEach(d => { const id = d.id_emision || "N/A"; if (!grouped[id]) grouped[id] = { id, titular: d.titular, dependencia: d.dependencia, impacts: 0, items: [] }; grouped[id].impacts++; grouped[id].items.push(d); });
             currentTableData = Object.values(grouped).filter(item => (item.titular || "").toLowerCase().includes(searchTerm) || (item.id || "").toLowerCase().includes(searchTerm)).sort((a, b) => b.impacts - a.impacts);
             const pageData = currentTableData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-            tbody.innerHTML = pageData.map(item => `<tr class="hover:bg-surface-container-low transition-colors text-xs border-b border-outline-variant/30"><td class="px-4 lg:px-6 py-3"><div class="font-bold text-primary truncate max-w-[150px] lg:max-w-xs">${item.titular || "S/T"}</div><div class="text-[9px] text-on-surface-variant font-mono">ID: ${item.id}</div></td><td class="px-4 lg:px-6 py-3 hidden sm:table-cell">${item.dependencia || "N/A"}</td><td class="px-4 lg:px-6 py-3 text-center font-bold text-primary">${item.impacts}</td><td class="px-4 lg:px-6 py-3 text-right"><button class="text-primary font-bold hover:underline" onclick="showComDetail('${item.id}')">Ver medios</button></td></tr>`).join('');
+            tbody.innerHTML = pageData.map(item => `<tr class="hover:bg-primary/5 even:bg-surface-container-low transition-colors text-xs border-b border-outline-variant/30"><td class="px-4 lg:px-6 py-3"><div class="font-bold text-primary truncate max-w-[150px] lg:max-w-xs">${item.titular || "S/T"}</div><div class="text-[9px] text-on-surface-variant font-mono">ID: ${item.id}</div></td><td class="px-4 lg:px-6 py-3 hidden sm:table-cell">${item.dependencia || "N/A"}</td><td class="px-4 lg:px-6 py-3 text-center font-bold text-primary">${item.impacts}</td><td class="px-4 lg:px-6 py-3 text-right"><button class="text-primary font-bold hover:underline" onclick="showComDetail('${item.id}')">Ver medios</button></td></tr>`).join('');
             renderPaginationControls(currentTableData.length);
         }
 
