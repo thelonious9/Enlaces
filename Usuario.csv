@@ -1,39 +1,39 @@
-Usuario,Dependencia,Siglas
-Janeth Canales,Despacho,SDPEE
-Jorge Guzmán,Planeación,UPLAPH
-Crystall García,Sipdus,Sipdus
-Laura Rivera,Sipdus,Sipdus
-Godeleva Pérez,Hacienda,Hacienda
-Guadalupe Carrasco,Saderh,Saderh
-Anel Fernández,Saderh,Saderh
-Carlos Santamaría,Oficialía Mayor,OM
-Juan Luis Escobar,DIFH,DIFH
-Iván Hernández,SEPH,SEPH
-Emmanuel Huerta,Bienestar,Sebiso
-Divani Cardoso, Bienestar,Sebiso
-Vanessa Sánchez,Contraloría,SC
-Sergio García,SEPH,SEPH
-Mackency Gutiérrez,Semarnath,Semarnath
-Patricia Sánchez,Sedeco,Sedeco
-Eder Arteaga,PGJEH,PGJEH
-Eliza Herrera,Semarnath,Semarnath
-Juan José Fernández,STPSH,STPSH
-Alejandro Mera,STPSH,STPSH
-Alejandra Pasten,Semot,Semot
-Julio Violante,Cultura,Cultura
-Javier Trejo,Semot,Semot
-Prentice Escamilla,Cultura,Cultura
-Evelyn Montúfar,Turismo,SECTURH
-Yoshio Cansino,Turismo,SECTURH
-Anabel Mendoza,Turismo,SECTURH
-Karina Atanacio,Segobh,SEGOBH
-Jair Martínez,Segobh,SEGOBH
-Christian Ortiz,SSPH,SSPH
+Usuario,Dependencia,Siglas,Conjuntos
+Janeth Canales,Despacho,SDPEE,SDPEE-OCSAD
+Jorge Guzmán,Planeación,UPLAPH,UPLAPH
+Crystall García,Sipdus,Sipdus,Sipdus
+Laura Rivera,Sipdus,Sipdus,Sipdus
+Godeleva Pérez,Hacienda,Hacienda,Hacienda
+Guadalupe Carrasco,Saderh,Saderh,Sarderh
+Anel Fernández,Saderh,Saderh,Saderh
+Carlos Santamaría,Oficialía Mayor,OM,OM
+Juan Luis Escobar,DIFH,DIFH,DIFH
+Iván Hernández,SEPH,SEPH,SEPH
+Emmanuel Huerta,Bienestar,Sebiso,Sebiso
+Divani Cardoso, Bienestar,Sebiso,Sebiso
+Vanessa Sánchez,Contraloría,SC,SC
+Sergio García,SEPH,SEPH,SEPH
+Mackency Gutiérrez,Semarnath,Semarnath,Semarnath
+Patricia Sánchez,Sedeco,Sedeco,Sedeco
+Eder Arteaga,PGJEH,PGJEH,PGJEH-SSPH
+Eliza Herrera,Semarnath,Semarnath,Semarnath
+Juan José Fernández,STPSH,STPSH,STPSH
+Alejandro Mera,STPSH,STPSH,STPSH
+Alejandra Pasten,Semot,Semot,Semot
+Julio Violante,Cultura,Cultura,Cultura
+Javier Trejo,Semot,Semot,Semot
+Prentice Escamilla,Cultura,Cultura,Cultura
+Evelyn Montúfar,Turismo,SECTURH,SECTURH
+Yoshio Cansino,Turismo,SECTURH,SECTURH
+Anabel Mendoza,Turismo,SECTURH,SECTURH
+Karina Atanacio,Segobh,SEGOBH,SEGOBH
+Jair Martínez,Segobh,SEGOBH,SEGOBH
+Christian Ortiz,SSPH,SSPH,PGJEH-SSPH
 Marco García,PGJEH,PGJEH
 Adriana Fernández,PGJEH,PGJEH
-Elena Ángeles,SSH
-Emmanuel Villarreal,OCSAD,OCSAD
-Ana Ríos,Despacho,SDPEE
+Elena Ángeles,SSH,SSH,SSH
+Emmanuel Villarreal,OCSAD,OCSAD,SDPEE-OCSAD
+Ana Ríos,Despacho,SDPEE,SDPEE-OCSAD
 Arelly Pérez,Despacho,SDPEE
 Joyce Duarte,Semot
 Juan Manuel Bravo,Semot
