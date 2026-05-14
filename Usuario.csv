@@ -10,7 +10,7 @@ Carlos Santamaría,Oficialía Mayor,OM,OM
 Juan Luis Escobar,DIFH,DIFH,DIFH
 Iván Hernández,SEPH,SEPH,SEPH
 Emmanuel Huerta,Bienestar,Sebiso,Sebiso
-Divani Cardoso, Bienestar,Sebiso,Sebiso
+Divani Cardoso,Bienestar,Sebiso,Sebiso
 Vanessa Sánchez,Contraloría,SC,SC
 Sergio García,SEPH,SEPH,SEPH
 Mackency Gutiérrez,Semarnath,Semarnath,Semarnath
@@ -19,9 +19,7 @@ Eder Arteaga,PGJEH,PGJEH,PGJEH-SSPH
 Eliza Herrera,Semarnath,Semarnath,Semarnath
 Juan José Fernández,STPSH,STPSH,STPSH
 Alejandro Mera,STPSH,STPSH,STPSH
-Alejandra Pasten,Semot,Semot,Semot
 Julio Violante,Cultura,Cultura,Cultura
-Javier Trejo,Semot,Semot,Semot
 Prentice Escamilla,Cultura,Cultura,Cultura
 Evelyn Montúfar,Turismo,SECTURH,SECTURH
 Yoshio Cansino,Turismo,SECTURH,SECTURH
@@ -29,11 +27,11 @@ Anabel Mendoza,Turismo,SECTURH,SECTURH
 Karina Atanacio,Segobh,SEGOBH,SEGOBH
 Jair Martínez,Segobh,SEGOBH,SEGOBH
 Christian Ortiz,SSPH,SSPH,PGJEH-SSPH
-Marco García,PGJEH,PGJEH
-Adriana Fernández,PGJEH,PGJEH
+Marco García,PGJEH,PGJEH,PGJEH-SSPH
+Adriana Fernández,PGJEH,PGJEH,PGJEH-SSPH
 Elena Ángeles,SSH,SSH,SSH
 Emmanuel Villarreal,OCSAD,OCSAD,SDPEE-OCSAD
 Ana Ríos,Despacho,SDPEE,SDPEE-OCSAD
-Arelly Pérez,Despacho,SDPEE
-Joyce Duarte,Semot
-Juan Manuel Bravo,Semot
+Arelly Pérez,Despacho,SDPEE,SDPEE-OCSAD
+Joyce Duarte,Semot,Semot,Semot
+Juan Manuel Bravo,Semot,Semot,Semot
