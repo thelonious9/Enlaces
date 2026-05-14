@@ -221,9 +221,11 @@
       border: 2px solid var(--color-border);
       border-radius: var(--radius);
       background: var(--color-fondo-form);
-      /* overflow: hidden; */ /* REMOVED to allow dropdown visibility */
+      /* overflow: hidden; */
+      /* REMOVED to allow dropdown visibility */
       position: relative;
-      min-width: 320px; /* Increased to ensure parts are visible */
+      min-width: 320px;
+      /* Increased to ensure parts are visible */
     }
 
     .id-container {
@@ -267,20 +269,34 @@
     }
 
     /* Width adjustments for parts */
-    #id_part1 { flex: 2.0; border-radius: var(--radius) 0 0 var(--radius) !important; } /* Sigla */
-    #id_part2 { flex: 1.0; } /* Tipo */
-    #id_part3 { flex: 1.0; } /* Num */
-    #id_part4 { 
-      flex: 1; 
-      text-align: center; 
-      background: var(--color-blocked-bg) !important; 
+    #id_part1 {
+      flex: 2.0;
+      border-radius: var(--radius) 0 0 var(--radius) !important;
+    }
+
+    /* Sigla */
+    #id_part2 {
+      flex: 1.0;
+    }
+
+    /* Tipo */
+    #id_part3 {
+      flex: 1.0;
+    }
+
+    /* Num */
+    #id_part4 {
+      flex: 1;
+      text-align: center;
+      background: var(--color-blocked-bg) !important;
       font-weight: bold;
       border-radius: 0 var(--radius) var(--radius) 0 !important;
     }
 
     .id-container .sugerencias {
       min-width: 150px;
-      z-index: 1001; /* Above other elements */
+      z-index: 1001;
+      /* Above other elements */
     }
 
     .campo-actions {
@@ -1309,19 +1325,25 @@
 
       // 1. Obtener Sigla (Part 1)
       let sigla = (typeof forcedAbrev === 'string') ? forcedAbrev : '';
-      
-      // Priorizar la sigla del Usuario si está definido
-      if (!sigla && usuarioVal) {
-        const uMapStr = document.getElementById('usuario').dataset.map;
-        if (uMapStr) {
-          const uMap = JSON.parse(uMapStr);
-          const uKey = findKeyCaseInsensitive(uMap, usuarioVal);
-          if (uKey && uMap[uKey].siglas) {
-            sigla = uMap[uKey].siglas;
-          }
+
+      // 🌟 PRIORIDAD 1: Casos especiales (Gobernador / Gabinete de Seguridad) 🌟
+      // Se usa la 4ta columna "Conjuntos" del archivo Usuario.csv
+      if (dep === 'Gobernador' || dep === 'Gabinete de Seguridad') {
+        const uData = window.usuarioDataMap[usuarioVal];
+        if (uData && uData.conjuntos) {
+          sigla = uData.conjuntos;
         }
       }
 
+      // 🌟 PRIORIDAD 2: Sigla del Usuario (Col 3 de Usuario.csv) 🌟
+      if (!sigla && usuarioVal) {
+        const uData = window.usuarioDataMap[usuarioVal];
+        if (uData && uData.siglas) {
+          sigla = uData.siglas;
+        }
+      }
+
+      // 🌟 PRIORIDAD 3: Abrev.csv (Basado en Dependencia) 🌟
       if (!sigla && dep && window.abrevMap) {
         const key = findKeyCaseInsensitive(window.abrevMap, dep);
         if (key && window.abrevMap[key] && window.abrevMap[key].length > 0) {
@@ -1884,9 +1906,13 @@
       const usuarioDataRaw = limpiarFilasCSV(await cargarCSV(urls.usuarios));
       window.usuarioDataMap = {}; // Hacer global
       const usuariosClaves = [];
-      usuarioDataRaw.forEach(([user, dep, sig]) => {
+      usuarioDataRaw.forEach(([user, dep, sig, conj]) => {
         if (!user) return;
-        window.usuarioDataMap[user] = { dependencia: dep || '', siglas: sig || '' };
+        window.usuarioDataMap[user] = {
+          dependencia: dep || '',
+          siglas: sig || '',
+          conjuntos: conj || ''
+        };
         usuariosClaves.push(user);
       });
       document.getElementById('usuario').dataset.map = JSON.stringify(window.usuarioDataMap);
@@ -2157,7 +2183,7 @@
             // Si el checkbox existe, alterna su estado y aplica el bloqueo/desbloqueo
             if (checkbox) {
               checkbox.checked = !checkbox.checked; // Alterna el estado
-              
+
               if (campoId === 'id_emision') {
                 alternarBloqueoID();
               } else {
