@@ -644,6 +644,7 @@
         let currentPage = 1;
         let itemsPerPage = 15;
         let currentTableData = [];
+        let currentFilteredData = [];
         let redrawTimeout;
 
         function toggleSidebar() {
@@ -736,7 +737,7 @@
             if (range === 'Todos') label.innerText = "Histórico";
             else label.innerText = `${start.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} - ${end.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`;
 
-            renderSmartTimeline(null, start, end);
+            renderSmartTimeline(currentFilteredData, start, end);
         }
 
         function switchTab(tabId) {
@@ -850,6 +851,7 @@
                 console.error(e);
             }
             renderTable(filtered);
+            currentFilteredData = filtered; // Guardamos los datos filtrados globalmente
             renderFichasTable(filtered);
 
             const timelineRangeLabel = document.getElementById('timeline-period-label');
@@ -1054,7 +1056,7 @@
 
         function renderSmartTimeline(filteredData, startDate = null, endDate = null) {
             const ctx = document.getElementById('g_timeline'); if (!ctx) return;
-            const dataToUse = filteredData || rData;
+            const dataToUse = filteredData || currentFilteredData || rData;
             const counts = {};
             dataToUse.forEach(d => {
                 if (startDate && d._date < startDate) return;
@@ -1178,7 +1180,7 @@
             if (!list) return;
             const searchInput = document.getElementById('fichas-search');
             const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
-            const dataToUse = data || rData;
+            const dataToUse = data || currentFilteredData || rData;
             const uniqueIDs = {};
             dataToUse.forEach(d => {
                 const id = d.id_emision || "N/A";
@@ -1206,7 +1208,7 @@
         }
 
         function showFichaDetail(id) {
-            const items = rData.filter(d => d.id_emision === id);
+            const items = currentFilteredData.filter(d => d.id_emision === id);
             if (items.length === 0) return;
             const first = items[0];
             document.getElementById('fichas-main-view').classList.add('hidden');
