@@ -1110,7 +1110,24 @@
 
         function renderTable(data) {
             const tbody = document.getElementById('table-comunicados-body'), searchTerm = document.getElementById('table-search').value.toLowerCase();
-            const grouped = {}; data.forEach(d => { const id = d.id_emision || "N/A"; if (!grouped[id]) grouped[id] = { id, titular: d.titular, dependencia: d.dependencia, impacts: 0, items: [] }; grouped[id].impacts++; grouped[id].items.push(d); });
+            const grouped = {};
+            data.forEach(d => {
+                const id = d.id_emision || "N/A";
+                if (!grouped[id]) grouped[id] = { id, dependencia: d.dependencia, impacts: 0, items: [] };
+                grouped[id].impacts++;
+                grouped[id].items.push(d);
+            });
+            Object.values(grouped).forEach(g => {
+                const titleCounts = {};
+                g.items.forEach(it => {
+                    if (it.titular && it.titular.trim() !== "") {
+                        const t = it.titular.trim();
+                        titleCounts[t] = (titleCounts[t] || 0) + 1;
+                    }
+                });
+                const sortedTitles = Object.entries(titleCounts).sort((a, b) => b[1] - a[1]);
+                g.titular = sortedTitles.length > 0 ? sortedTitles[0][0] : "S/T";
+            });
             currentTableData = Object.values(grouped).filter(item => (item.titular || "").toLowerCase().includes(searchTerm) || (item.id || "").toLowerCase().includes(searchTerm)).sort((a, b) => b.impacts - a.impacts);
             const pageData = currentTableData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
             tbody.innerHTML = pageData.map(item => `<tr class="hover:bg-primary/5 even:bg-surface-container-low transition-colors text-xs border-b border-outline-variant/30"><td class="px-4 lg:px-6 py-3"><div class="font-bold text-primary line-clamp-2 leading-tight">${item.titular || "S/T"}</div><div class="text-[9px] text-on-surface-variant font-mono mt-1">ID: ${item.id}</div></td><td class="px-4 lg:px-6 py-3 hidden sm:table-cell">${item.dependencia || "N/A"}</td><td class="px-4 lg:px-6 py-3 text-center font-bold text-primary">${item.impacts}</td><td class="px-4 lg:px-6 py-3 text-right"><button class="text-primary font-bold hover:underline" onclick="showComDetail('${item.id}')">Ver medios</button></td></tr>`).join('');
@@ -1184,8 +1201,19 @@
             const uniqueIDs = {};
             dataToUse.forEach(d => {
                 const id = d.id_emision || "N/A";
-                if (!uniqueIDs[id]) uniqueIDs[id] = { id, titular: d.titular, dependencia: d.dependencia, items: [] };
+                if (!uniqueIDs[id]) uniqueIDs[id] = { id, dependencia: d.dependencia, items: [] };
                 uniqueIDs[id].items.push(d);
+            });
+            Object.values(uniqueIDs).forEach(g => {
+                const titleCounts = {};
+                g.items.forEach(it => {
+                    if (it.titular && it.titular.trim() !== "") {
+                        const t = it.titular.trim();
+                        titleCounts[t] = (titleCounts[t] || 0) + 1;
+                    }
+                });
+                const sortedTitles = Object.entries(titleCounts).sort((a, b) => b[1] - a[1]);
+                g.titular = sortedTitles.length > 0 ? sortedTitles[0][0] : "S/T";
             });
             const sorted = Object.values(uniqueIDs)
                 .filter(item => (item.titular || "").toLowerCase().includes(searchTerm) || (item.id || "").toLowerCase().includes(searchTerm))
@@ -1210,10 +1238,21 @@
         function showFichaDetail(id) {
             const items = currentFilteredData.filter(d => d.id_emision === id);
             if (items.length === 0) return;
+            
+            const titleCounts = {};
+            items.forEach(it => {
+                if (it.titular && it.titular.trim() !== "") {
+                    const t = it.titular.trim();
+                    titleCounts[t] = (titleCounts[t] || 0) + 1;
+                }
+            });
+            const sortedTitles = Object.entries(titleCounts).sort((a, b) => b[1] - a[1]);
+            const bestTitular = sortedTitles.length > 0 ? sortedTitles[0][0] : "Sin Titular";
+
             const first = items[0];
             document.getElementById('fichas-main-view').classList.add('hidden');
             document.getElementById('fichas-detail-view').classList.remove('hidden');
-            document.getElementById('ficha-detail-title').innerText = first.titular || "Sin Titular";
+            document.getElementById('ficha-detail-title').innerText = bestTitular;
             document.getElementById('ficha-detail-id').innerText = `ID: ${id}`;
             const content = document.getElementById('ficha-detail-content');
             const channels = {};
