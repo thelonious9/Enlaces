@@ -2050,6 +2050,11 @@
       // 🟢 SUGERENCIAS CANAL (Se genera a partir de los valores únicos del mapa Medio.csv) 🟢
       // Se utiliza .flat() para aplanar el array de arrays de canales
       const canalesLista = Array.from(new Set(Object.values(medioToCanalMap).flat())).sort((a, b) => a.localeCompare(b, 'es'));
+      const rrssIndex = canalesLista.indexOf("RRSS");
+      if (rrssIndex > -1) {
+        canalesLista.splice(rrssIndex, 1);
+        canalesLista.unshift("RRSS");
+      }
       autocompletar("canal", "sugCanal", canalesLista);
 
       // Listener para el buscador en tiempo real
