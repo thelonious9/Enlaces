@@ -756,7 +756,10 @@
                 const s = document.getElementById(`sel-${col}`);
                 if (!s) return;
                 let sourceItems = rData.filter(d => {
-                    if (f.OficialOnly && (!d.id_emision || d.id_emision === "N/A")) return false;
+                    if (f.OficialOnly) {
+                        const g = String(d['género'] || d['genero'] || '').toLowerCase();
+                        if (g !== 'boletín' && g !== 'boletin') return false;
+                    }
                     if (f.FechaStart && d._date < f.FechaStart) return false;
                     if (f.FechaEnd && d._date > f.FechaEnd) return false;
                     if (f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
@@ -823,7 +826,10 @@
         function applyFilters() {
             const f = getCurrentFilterState();
             const globalData = rData.filter(d => {
-                if (f.OficialOnly && (!d.id_emision || d.id_emision === "N/A")) return false;
+                if (f.OficialOnly) {
+                    const g = String(d['género'] || d['genero'] || '').toLowerCase();
+                    if (g !== 'boletín' && g !== 'boletin') return false;
+                }
                 if (f.FechaStart && d._date < f.FechaStart) return false;
                 if (f.FechaEnd && d._date > f.FechaEnd) return false;
                 if (f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
@@ -1165,12 +1171,16 @@
                             <span class="bg-secondary/10 px-2 rounded-full">${items.length}</span>
                         </h4>
                         <div class="space-y-1">
-                            ${items.map(it => `
+                            ${items.map(it => {
+                                const isLink = canal === "Portales locales" || canal === "RRSS";
+                                const link = it['página'] || it['pagina'] || '';
+                                const medioContent = (isLink && link) ? `<a href="${link}" target="_blank" class="font-bold text-primary hover:underline">${it.medio}</a>` : `<span class="font-bold text-primary">${it.medio}</span>`;
+                                return `
                                 <div class="bg-surface-container-low p-2 rounded-lg border border-outline-variant/30 flex justify-between items-center text-[10px]">
-                                    <span class="font-bold text-primary">${it.medio}</span>
+                                    ${medioContent}
                                     <span class="text-[9px] text-on-surface-variant italic">${formatDate(it._date)}</span>
                                 </div>
-                            `).join('')}
+                            `}).join('')}
                         </div>
                     </div>
                 `;
@@ -1285,12 +1295,16 @@
                                 <span class="bg-primary/10 text-primary px-2 rounded-full">${mediaItems.length}</span>
                             </h5>
                             <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                                ${mediaItems.map(it => `
+                                ${mediaItems.map(it => {
+                                    const isLink = canal === "Portales locales" || canal === "RRSS";
+                                    const link = it['página'] || it['pagina'] || '';
+                                    const medioContent = (isLink && link) ? `<a href="${link}" target="_blank" class="font-medium text-on-surface hover:underline hover:text-primary">${it.medio}</a>` : `<span class="font-medium text-on-surface">${it.medio}</span>`;
+                                    return `
                                     <div class="flex justify-between items-center text-[10px] border-b border-dashed border-outline-variant/30 pb-1">
-                                        <span class="font-medium text-on-surface">${it.medio}</span>
+                                        ${medioContent}
                                         <span class="text-on-surface-variant italic">${formatDate(it._date)}</span>
                                     </div>
-                                `).join('')}
+                                `}).join('')}
                             </div>
                         </div>
                     `).join('')}
