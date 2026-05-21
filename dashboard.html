@@ -274,11 +274,16 @@
                             class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 focus:ring-primary focus:border-primary min-h-[100px]"
                             id="sel-Dependencia" multiple onchange="updateFilters()"></select>
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-primary uppercase">ID Comunicado</label>
-                        <select
-                            class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 focus:ring-primary focus:border-primary"
-                            id="sel-ID_Emision" onchange="updateFilters()"></select>
+                    <div class="relative space-y-1">
+                        <label class="text-[10px] font-bold text-primary uppercase">Buscar por ID</label>
+                        <div class="relative">
+                            <input type="text"
+                                class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 pr-8 focus:ring-primary focus:border-primary"
+                                id="sel-ID_Emision" placeholder="Buscar o elegir ID..." oninput="updateFilters()" onfocus="showIdDropdown()" onblur="hideIdDropdown()" autocomplete="off">
+                            <span class="material-icons absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none">arrow_drop_down</span>
+                        </div>
+                        <div id="sel-ID_Emision-dropdown" class="hidden absolute left-0 right-0 z-50 max-h-60 overflow-y-auto bg-white border border-outline-variant rounded-lg shadow-lg mt-1 text-xs custom-scrollbar">
+                        </div>
                     </div>
                     <div id="f-dynamic-cont" class="space-y-6"></div>
                 </div>
@@ -754,7 +759,30 @@
             const f = getCurrentFilterState();
             vColsHierarchy.forEach(col => {
                 const s = document.getElementById(`sel-${col}`);
-                if (!s) return;
+                if (!s && col !== "ID_Emision") return;
+                
+                if (col === "ID_Emision") {
+                    let sourceItems = rData.filter(d => {
+                        if (f.OficialOnly) {
+                            const g = String(d['género'] || d['genero'] || '').toLowerCase();
+                            if (g !== 'boletín' && g !== 'boletin') return false;
+                        }
+                        if (f.FechaStart && d._date < f.FechaStart) return false;
+                        if (f.FechaEnd && d._date > f.FechaEnd) return false;
+                        if (f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
+                        for (let otherCol of vColsHierarchy) {
+                            if (otherCol === col) continue;
+                            const val = f[otherCol];
+                            if (val === "Todos" || (Array.isArray(val) && val.length === 0)) continue;
+                            const dVal = String(d[otherCol.toLowerCase()] || "N/A");
+                            if (Array.isArray(val)) { if (!val.includes(dVal)) return false; } else { if (dVal !== val) return false; }
+                        }
+                        return true;
+                    });
+                    renderIdDropdownOptions(sourceItems, f[col]);
+                    return;
+                }
+
                 let sourceItems = rData.filter(d => {
                     if (f.OficialOnly) {
                         const g = String(d['género'] || d['genero'] || '').toLowerCase();
@@ -763,10 +791,19 @@
                     if (f.FechaStart && d._date < f.FechaStart) return false;
                     if (f.FechaEnd && d._date > f.FechaEnd) return false;
                     if (f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
+                    
                     for (let otherCol of vColsHierarchy) {
                         if (otherCol === col) continue;
                         const val = f[otherCol];
                         if (val === "Todos" || (Array.isArray(val) && val.length === 0)) continue;
+
+                        if (otherCol === "ID_Emision") {
+                            const dVal = String(d[otherCol.toLowerCase()] || "N/A");
+                            const cleanVal = val.toUpperCase().replace(/\s+/g, '');
+                            if (cleanVal && !dVal.includes(cleanVal)) return false;
+                            continue;
+                        }
+
                         const dVal = String(d[otherCol.toLowerCase()] || "N/A");
                         if (Array.isArray(val)) { if (!val.includes(dVal)) return false; } else { if (dVal !== val) return false; }
                     }
@@ -785,13 +822,55 @@
         function renderSelectOptions(select, col, items, activeValue) {
             const counts = {};
             items.forEach(d => { const v = String(d[col.toLowerCase()] || "N/A"); counts[v] = (counts[v] || 0) + 1; });
-            const sorted = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+            const sorted = Object.keys(counts).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
             let html = `<option value="Todos">Todos (${sorted.length})</option>`;
             sorted.forEach(k => {
                 const isSelected = Array.isArray(activeValue) ? activeValue.includes(k) : k === activeValue;
                 html += `<option ${isSelected ? 'selected' : ''} value="${k}">${k} (${counts[k]})</option>`;
             });
             select.innerHTML = html;
+        }
+
+        function renderIdDropdownOptions(items, activeValue) {
+            const dropdown = document.getElementById('sel-ID_Emision-dropdown');
+            if (!dropdown) return;
+            const counts = {};
+            items.forEach(d => { const v = String(d.id_emision || "N/A"); counts[v] = (counts[v] || 0) + 1; });
+            
+            const filterText = (activeValue && activeValue !== "Todos") ? activeValue.toUpperCase().replace(/\s+/g, '') : "";
+            let sorted = Object.keys(counts).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+            
+            if (filterText) {
+                sorted = sorted.filter(k => k.includes(filterText));
+            }
+
+            let html = `<div class="p-2 cursor-pointer hover:bg-primary/10 hover:text-primary font-bold ${(!activeValue || activeValue === "Todos") ? 'bg-primary/5 text-primary' : ''}" onclick="selectIdOption('Todos')">Todos (${sorted.length})</div>`;
+            sorted.forEach(k => {
+                const isSelected = k === activeValue;
+                html += `<div class="p-2 cursor-pointer hover:bg-primary/10 hover:text-primary ${isSelected ? 'bg-primary/5 text-primary font-bold' : ''}" onclick="selectIdOption('${k}')">${k} (${counts[k]})</div>`;
+            });
+            dropdown.innerHTML = html;
+        }
+
+        function selectIdOption(value) {
+            const input = document.getElementById('sel-ID_Emision');
+            if (input) {
+                input.value = (value === 'Todos') ? '' : value;
+                updateFilters();
+            }
+            hideIdDropdown();
+        }
+
+        function showIdDropdown() {
+            const dropdown = document.getElementById('sel-ID_Emision-dropdown');
+            if (dropdown) dropdown.classList.remove('hidden');
+        }
+
+        function hideIdDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('sel-ID_Emision-dropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+            }, 200);
         }
 
         function getCurrentFilterState() {
@@ -846,6 +925,14 @@
                     if (col === "Estatus") return true;
                     const val = f[col];
                     if (val === "Todos" || (Array.isArray(val) && val.length === 0)) return true;
+
+                    if (col === "ID_Emision") {
+                        const dVal = String(d[col.toLowerCase()] || "N/A");
+                        const cleanVal = val.toUpperCase().replace(/\s+/g, '');
+                        if (!cleanVal) return true;
+                        return dVal.includes(cleanVal);
+                    }
+
                     const dVal = String(d[col.toLowerCase()] || "N/A");
                     return Array.isArray(val) ? val.includes(dVal) : dVal === val;
                 });
