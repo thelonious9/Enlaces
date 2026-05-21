@@ -756,7 +756,10 @@
                 const s = document.getElementById(`sel-${col}`);
                 if (!s) return;
                 let sourceItems = rData.filter(d => {
-                    if (f.OficialOnly && (!d.id_emision || d.id_emision === "N/A")) return false;
+                    if (f.OficialOnly) {
+                        const g = String(d['género'] || d['genero'] || '').toLowerCase();
+                        if (g !== 'boletín' && g !== 'boletin') return false;
+                    }
                     if (f.FechaStart && d._date < f.FechaStart) return false;
                     if (f.FechaEnd && d._date > f.FechaEnd) return false;
                     if (f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
@@ -823,7 +826,10 @@
         function applyFilters() {
             const f = getCurrentFilterState();
             const globalData = rData.filter(d => {
-                if (f.OficialOnly && (!d.id_emision || d.id_emision === "N/A")) return false;
+                if (f.OficialOnly) {
+                    const g = String(d['género'] || d['genero'] || '').toLowerCase();
+                    if (g !== 'boletín' && g !== 'boletin') return false;
+                }
                 if (f.FechaStart && d._date < f.FechaStart) return false;
                 if (f.FechaEnd && d._date > f.FechaEnd) return false;
                 if (f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
