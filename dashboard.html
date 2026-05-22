@@ -1540,7 +1540,8 @@
                         return `
                         <div class="mb-4">
                             <h4 class="text-[10px] font-bold text-secondary uppercase mb-2 border-b border-outline-variant pb-1 flex justify-between">
-                                    <span class="bg-secondary/10 px-2 rounded-full">${formatNumberWithCommas(items.length)}</span>
+                                <span>${canal}</span>
+                                <span class="bg-secondary/10 px-2 rounded-full">${formatNumberWithCommas(items.length)}</span>
                             </h4>
                             <div class="space-y-1">
                                 ${items.map(it => {
