@@ -692,7 +692,7 @@
                         <!-- Chart 1: Stacked Bar Chart of Mentions -->
                         <div class="bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm h-[680px]">
                             <h3 class="text-xs lg:text-sm font-bold text-primary uppercase mb-4 text-center">
-                                Impacto mediático
+                                Menciones en Organismo (Gobernador y Titular)
                             </h3>
                             <div class="h-[600px]">
                                 <canvas id="g_gov_mentions"></canvas>
@@ -1125,13 +1125,7 @@
             if (subTitleEl) subTitleEl.innerText = `— ${f.FechaRange === "Todos" ? "Histórico" : f.FechaRange}`;
             
             const totalEl = document.getElementById('kpi-total');
-            if (totalEl) {
-                const validData = data.filter(d => {
-                    const id = d.id_emision || "N/A";
-                    return id !== "N/A" && id.trim() !== "";
-                });
-                totalEl.innerText = formatNumberWithCommas(validData.length);
-            }
+            if (totalEl) totalEl.innerText = formatNumberWithCommas(data.length);
             
             const uniqueIDs = (ds) => new Set(ds.map(d => d.id_emision).filter(id => id && id !== "N/A")).size;
             const idsData = uniqueIDs(data), rendData = idsData > 0 ? (data.length / idsData) : 0;
@@ -1198,7 +1192,7 @@
         }
 
         function renderCharts(data, partialData, f) {
-            renderButterflyChart(data, f.Limit, f.Mode);
+            renderButterflyChart(partialData, f.Limit, f.Mode);
             renderChart('g_doughnut', data, 'estatus', 'Sentimiento', 'doughnut', 15, 'top');
             renderMediosProdChart(data, f.Limit, f.Mode);
 
@@ -1705,13 +1699,7 @@
 
         function renderGovKPIs(govData, globalData) {
             const totalEl = document.getElementById('gov-kpi-total');
-            if (totalEl) {
-                const validData = govData.filter(d => {
-                    const id = d.id_emision || "N/A";
-                    return id !== "N/A" && id.trim() !== "";
-                });
-                totalEl.innerText = formatNumberWithCommas(validData.length);
-            }
+            if (totalEl) totalEl.innerText = formatNumberWithCommas(govData.length);
 
             const uniqueIDs = (ds) => new Set(ds.map(d => d.id_emision).filter(id => id && id !== "N/A")).size;
             
