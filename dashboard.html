@@ -1889,7 +1889,8 @@
                 div.style.top = `${rect.y}%`;
                 div.style.width = `${rect.w}%`;
                 div.style.height = `${rect.h}%`;
-                div.style.backgroundColor = colors[i % colors.length];
+                div.style.backgroundColor = colors[i
+                 % colors.length];
                 div.title = `${rect.label}: ${formatNumberWithCommas(rect.value)} (${rect.percentage}%)`;
                 
                 div.innerHTML = `
