@@ -660,6 +660,186 @@
         display: none;
       }
     }
+
+    /* Modal de Progreso de Envío */
+    .modal-progreso-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .modal-progreso-overlay.mostrar {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-progreso-card {
+      background: var(--color-fondo-form);
+      border: 3px solid var(--color-border);
+      border-radius: 12px;
+      padding: 35px 30px;
+      width: 90%;
+      max-width: 520px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      transform: scale(0.85) translateY(20px);
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+      position: relative;
+    }
+
+    .modal-progreso-overlay.mostrar .modal-progreso-card {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-progreso-card h3 {
+      font-size: 2rem;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .icon-envio {
+      animation: pulseEnvio 1.5s infinite ease-in-out;
+      color: var(--color-primary);
+    }
+
+    @keyframes pulseEnvio {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.15); opacity: 0.7; }
+    }
+
+    #modalProgresoSubtitulo {
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--color-text);
+      opacity: 0.9;
+      margin-bottom: 12px;
+    }
+
+    .progreso-bar-container {
+      width: 100%;
+      height: 24px;
+      background: var(--color-blocked-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--color-border);
+      margin: 15px 0 10px 0;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .progreso-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      border-radius: 10px;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progreso-bar-fill::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background-image: linear-gradient(
+        -45deg, 
+        rgba(255, 255, 255, .15) 25%, 
+        transparent 25%, 
+        transparent 50%, 
+        rgba(255, 255, 255, .15) 50%, 
+        rgba(255, 255, 255, .15) 75%, 
+        transparent 75%, 
+        transparent
+      );
+      z-index: 1;
+      background-size: 50px 50px;
+      animation: moveStripes 2s linear infinite;
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+      border-top-left-radius: 20px;
+      border-bottom-left-radius: 20px;
+    }
+
+    @keyframes moveStripes {
+      0% { background-position: 0 0; }
+      100% { background-position: 50px 50px; }
+    }
+
+    #modalProgresoPorcentaje {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--color-text);
+      margin-bottom: 5px;
+    }
+
+    .modal-aviso-limpiar {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      line-height: 1.4;
+      animation: slideInUp 0.4s ease-out;
+    }
+
+    .icon-success {
+      color: var(--color-secondary);
+      font-size: 1.6rem;
+    }
+
+    .btn-cerrar-modal {
+      padding: 12px 30px !important;
+      font-size: 1.1rem !important;
+      font-weight: 800 !important;
+      color: var(--color-fondo-pagina) !important;
+      background: var(--color-text) !important;
+      border: 2px solid var(--color-border) !important;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .btn-cerrar-modal:hover {
+      background: transparent !important;
+      color: var(--color-text) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    }
+
+    body.dark-mode .progreso-bar-fill {
+      background: linear-gradient(90deg, #A57F2C 0%, #8c264a 100%);
+    }
+
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 
@@ -1749,6 +1929,20 @@
       const btn = document.getElementById('btnExportarNotas');
       const originalHTML = btn.innerHTML;
 
+      // Obtener referencias a elementos del modal
+      const modal = document.getElementById('modalProgreso');
+      const modalSubtitulo = document.getElementById('modalProgresoSubtitulo');
+      const modalBar = document.getElementById('modalProgresoBar');
+      const modalPorcentaje = document.getElementById('modalProgresoPorcentaje');
+      const modalFooter = document.getElementById('modalProgresoFooter');
+
+      // Inicializar y mostrar modal
+      modalSubtitulo.textContent = "Preparando envío...";
+      modalBar.style.width = "0%";
+      modalPorcentaje.textContent = "0%";
+      modalFooter.style.display = "none";
+      modal.classList.add('mostrar');
+
       try {
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
@@ -1795,14 +1989,22 @@
           }).catch(err => console.warn("Error en envío individual:", err));
 
           completados++;
+          const porcentaje = Math.round((completados / total) * 100);
+          modalBar.style.width = porcentaje + "%";
+          modalPorcentaje.textContent = porcentaje + "%";
+          modalSubtitulo.textContent = `Enviando nota ${completados} de ${total}...`;
           btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando ${completados}/${total}...`;
         }
 
-        alert("Notas enviadas a base de datos y copia descargada");
+        // Mostrar aviso final al terminar con éxito
+        modalSubtitulo.textContent = "¡Envío completado!";
+        modalFooter.style.display = "block";
 
       } catch (error) {
         console.error("Error en la exportación/envío:", error);
-        alert("Notas enviadas a base de datos y copia descargada");
+        // Mostrar aviso final de todas formas
+        modalSubtitulo.textContent = "Finalizado con observaciones";
+        modalFooter.style.display = "block";
       } finally {
         btn.disabled = false;
         btn.innerHTML = originalHTML;
@@ -2422,7 +2624,41 @@
     zoomDisplay.addEventListener('click', () => updateZoom(1.0));
     // ----------------------------
 
+    function cerrarModalProgreso() {
+      const modal = document.getElementById('modalProgreso');
+      if (modal) {
+        modal.classList.remove('mostrar');
+      }
+    }
   </script>
+
+  <!-- Modal de Progreso de Envío -->
+  <div id="modalProgreso" class="modal-progreso-overlay">
+    <div class="modal-progreso-card">
+      <div id="modalProgresoHeader">
+        <h3 id="modalProgresoTitulo">
+          <i class="fa-solid fa-cloud-arrow-up icon-envio"></i> 
+          <span id="modalProgresoTituloText">Enviando notas</span>
+        </h3>
+      </div>
+      <div id="modalProgresoContent">
+        <div id="modalProgresoSubtitulo">Preparando envío...</div>
+        <div class="progreso-bar-container">
+          <div id="modalProgresoBar" class="progreso-bar-fill"></div>
+        </div>
+        <div id="modalProgresoPorcentaje">0%</div>
+      </div>
+      <div id="modalProgresoFooter" style="display: none;">
+        <p class="modal-aviso-limpiar">
+          <i class="fa-solid fa-circle-check icon-success"></i> 
+          Notas enviadas, recuerda limpiar tu formulario.
+        </p>
+        <button type="button" id="btnCerrarModal" class="btn-cerrar-modal" onclick="cerrarModalProgreso()">
+          <i class="fa-solid fa-check"></i> Entendido
+        </button>
+      </div>
+    </div>
+  </div>
 
   <footer>
     Francisco Villeda &copy; 2026
