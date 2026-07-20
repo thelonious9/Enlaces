@@ -1,0 +1,2099 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Portal de Supervisión de Trazabilidad | Dashboard</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Scripts -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#611232",
+                        "secondary": "#A57F2C",
+                        "background": "#f8f9fa",
+                        "surface": "#ffffff",
+                        "on-surface": "#191c1d",
+                        "on-surface-variant": "#544246",
+                        "outline-variant": "#d9c0c5",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#ffd175",
+                        "on-secondary-container": "#795801",
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "sans": ["Montserrat", "sans-serif"],
+                        "h1": ["Montserrat"],
+                        "h2": ["Montserrat"],
+                        "h3": ["Montserrat"],
+                        "body-lg": ["Montserrat"],
+                        "body-md": ["Montserrat"],
+                        "label-caps": ["Montserrat"],
+                        "data-tabular": ["Montserrat"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .material-icons {
+            font-family: 'Material Icons' !important;
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: 'liga';
+            vertical-align: middle;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d9c0c5;
+            border-radius: 10px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-btn.active {
+            border-bottom: 3px solid #611232;
+            color: #611232;
+            font-weight: 700;
+        }
+
+        .shadow-elevation-1 {
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Mobile Specific */
+        @media (max-width: 1024px) {
+            .sidebar-collapsed {
+                transform: translateX(-100%);
+            }
+
+            .main-expanded {
+                margin-left: 0;
+            }
+        }
+
+        /* Sidebar transition */
+        #sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-hidden {
+            width: 0 !important;
+            transform: translateX(-100%);
+            overflow: hidden;
+        }
+
+        /* Nav scrolling for mobile */
+        .nav-scrollable {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .nav-scrollable::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+    <!-- TopAppBar -->
+    <header
+        class="flex justify-between items-center w-full px-4 lg:px-gutter h-16 fixed top-0 z-50 bg-surface shadow-sm border-b border-outline-variant">
+        <div class="flex items-center gap-3 lg:gap-4 overflow-hidden">
+            <!-- Toggle Button -->
+            <button
+                class="flex items-center gap-2 p-2 hover:bg-surface-container-low rounded-lg transition-colors text-primary font-bold text-xs"
+                id="sidebar-toggle" onclick="toggleSidebar()">
+                <span class="material-icons">menu</span>
+                <span class="hidden sm:inline">Filtros</span>
+            </button>
+            <span class="text-lg lg:text-h3 font-bold text-primary whitespace-nowrap">Dashboard de Comunicados</span>
+            <span id="dash-subtitle"
+                class="text-[10px] text-secondary font-bold truncate max-w-[200px] hidden sm:block"></span>
+            <!-- Navigation - Scrollable on mobile -->
+            <nav class="flex items-center ml-4 lg:ml-8 gap-0 h-full overflow-x-auto nav-scrollable">
+                <button
+                    class="tab-btn active text-on-surface-variant transition-colors duration-200 h-16 flex items-center px-2 lg:px-4 border-b-2 border-transparent text-[9px] lg:text-xs uppercase tracking-wider whitespace-nowrap gap-1 lg:gap-2"
+                    onclick="switchTab('productividad')">
+                    <span class="material-icons text-sm lg:text-base">analytics</span>
+                    <span class="hidden sm:inline">Productividad</span>
+                </button>
+                <button
+                    class="tab-btn text-on-surface-variant transition-colors duration-200 h-16 flex items-center px-2 lg:px-4 border-b-2 border-transparent text-[9px] lg:text-xs uppercase tracking-wider whitespace-nowrap gap-1 lg:gap-2"
+                    onclick="switchTab('comunicados')">
+                    <span class="material-icons text-sm lg:text-base">list</span>
+                    <span class="hidden sm:inline">Lista de comunicados</span>
+                </button>
+                <button
+                    class="tab-btn text-on-surface-variant transition-colors duration-200 h-16 flex items-center px-2 lg:px-4 border-b-2 border-transparent text-[9px] lg:text-xs uppercase tracking-wider whitespace-nowrap gap-1 lg:gap-2"
+                    onclick="switchTab('analisis')">
+                    <span class="material-icons text-sm lg:text-base">insights</span>
+                    <span class="hidden sm:inline">Impacto</span>
+                </button>
+                <button
+                    class="tab-btn text-on-surface-variant transition-colors duration-200 h-16 flex items-center px-2 lg:px-4 border-b-2 border-transparent text-[9px] lg:text-xs uppercase tracking-wider whitespace-nowrap gap-1 lg:gap-2"
+                    onclick="switchTab('gobernador')">
+                    <span class="material-icons text-sm lg:text-base">person</span>
+                    <span class="hidden sm:inline">Gobernador</span>
+                </button>
+            </nav>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="index.html"
+                class="flex items-center gap-2 bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors">
+                <span class="material-icons text-sm">arrow_back</span> Registro
+            </a>
+        </div>
+    </header>
+    <div id="loading-overlay" class="fixed inset-0 z-[100] bg-white/90 flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-primary/20 border-top-primary rounded-full animate-spin mb-4"
+            style="border-top-color: #611232;"></div>
+        <p class="text-primary font-bold text-sm">Cargando datos del dashboard...</p>
+    </div>
+    <div class="flex pt-16 h-screen overflow-hidden">
+        <!-- Sidebar: Collapsible Filters -->
+        <aside
+            class="w-64 flex-shrink-0 bg-surface-container-low border-r border-outline-variant flex flex-col z-40 fixed lg:static h-[calc(100vh-64px)] overflow-hidden"
+            id="sidebar">
+            <div class="p-4 lg:p-6 border-b border-outline-variant bg-surface">
+                <h3 class="text-sm lg:text-base font-bold text-primary flex items-center gap-2">
+                    <span class="material-icons">filter_list</span> Panel de Filtros
+                </h3>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6 custom-scrollbar">
+                <!-- Analytics Controls -->
+                <div class="bg-surface-container-low p-3 rounded-xl border border-outline-variant space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-primary uppercase">Elegir Rango / Top</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="an-x" value="10" min="1"
+                                class="w-16 text-xs rounded-lg border-outline-variant py-1.5 focus:ring-primary focus:border-primary"
+                                onchange="updateFilters()">
+                            <select id="an-mode"
+                                class="flex-1 text-xs rounded-lg border-outline-variant py-1.5 focus:ring-primary focus:border-primary"
+                                onchange="updateFilters()">
+                                <option value="top">Los "X" más</option>
+                                <option value="bottom">Los "X" menos</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div id="f-cont" class="space-y-6">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-primary uppercase">Estatus</label>
+                        <select
+                            class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 focus:ring-primary focus:border-primary"
+                            id="sel-Estatus" onchange="updateFilters()"></select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-primary uppercase">Periodo</label>
+                        <select
+                            class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 focus:ring-primary focus:border-primary"
+                            id="sel-Fecha-Range" onchange="handleDateRangeChange()">
+                            <option value="Todos">Todo el histórico</option>
+                            <option value="Hoy">Hoy</option>
+                            <option value="Ayer">Ayer</option>
+                            <option value="Semana">Últimos 7 días</option>
+                            <option value="MesActual">Este mes</option>
+                            <option value="MesAnterior">Mes anterior</option>
+                            <option value="Custom">Rango personalizado</option>
+                        </select>
+                    </div>
+                    <div id="custom-date-cont" class="hidden grid grid-cols-2 gap-2">
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-bold text-on-surface-variant uppercase">Inicio</label>
+                            <input type="date" id="date-start"
+                                class="w-full text-[10px] rounded border-outline-variant py-1 focus:ring-primary"
+                                onchange="updateFilters()">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-bold text-on-surface-variant uppercase">Fin</label>
+                            <input type="date" id="date-end"
+                                class="w-full text-[10px] rounded border-outline-variant py-1 focus:ring-primary"
+                                onchange="updateFilters()">
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-primary uppercase">Dependencia</label>
+                        <select
+                            class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 focus:ring-primary focus:border-primary min-h-[100px]"
+                            id="sel-Dependencia" multiple onchange="updateFilters()"></select>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="chk-titular-organismo" class="rounded text-primary focus:ring-primary h-4 w-4"
+                                onchange="updateFilters()">
+                            <label for="chk-titular-organismo" class="text-[10px] font-bold text-on-surface-variant">Solo Titular en Organismo</label>
+                        </div>
+                    </div>
+                    <div class="relative space-y-1">
+                        <label class="text-[10px] font-bold text-primary uppercase">Buscar por ID</label>
+                        <div class="relative">
+                            <input type="text"
+                                class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 pr-8 focus:ring-primary focus:border-primary"
+                                id="sel-ID_Emision" placeholder="Buscar o elegir ID..." oninput="updateFilters()" onfocus="showIdDropdown()" onblur="hideIdDropdown()" autocomplete="off">
+                            <span class="material-icons absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none">arrow_drop_down</span>
+                        </div>
+                        <div id="sel-ID_Emision-dropdown" class="hidden absolute left-0 right-0 z-50 max-h-60 overflow-y-auto bg-white border border-outline-variant rounded-lg shadow-lg mt-1 text-xs custom-scrollbar">
+                        </div>
+                    </div>
+                    <div id="f-dynamic-cont" class="space-y-6"></div>
+                </div>
+
+                <button onclick="location.reload()"
+                    class="w-full py-2 border border-outline-variant rounded-lg text-[10px] font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors">
+                    Restablecer Filtros
+                </button>
+            </div>
+        </aside>
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto bg-background p-4 lg:p-gutter custom-scrollbar transition-all duration-300"
+            id="main-content">
+            <!-- Global KPIs -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 mb-6 lg:mb-gutter" id="kpi-container">
+                <div
+                    class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between">
+                    <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                    <div class="flex justify-between items-start">
+                        <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Rendimiento</p>
+                        <span class="material-icons text-primary text-base lg:text-lg">trending_up</span>
+                    </div>
+                    <h2 class="text-lg lg:text-2xl font-bold text-primary mt-1" id="kpi-rendimiento">0.00</h2>
+                    <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                        Promedio de publicaciones obtenidas por cada comunicado emitido.</p>
+                </div>
+                <div
+                    class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between">
+                    <div class="absolute left-0 top-0 w-1 h-full bg-secondary"></div>
+                    <div class="flex justify-between items-start">
+                        <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Eficacia
+                            Relativa</p>
+                        <span class="material-icons text-secondary text-base lg:text-lg">pie_chart</span>
+                    </div>
+                    <h2 class="text-lg lg:text-2xl font-bold text-secondary mt-1" id="kpi-eficacia">0%</h2>
+                    <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                        Participación porcentual de la cobertura en relación al impacto total.</p>
+                </div>
+                <div
+                    class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between">
+                    <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                    <div class="flex justify-between items-start">
+                        <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Aprovechamiento
+                        </p>
+                        <span class="material-icons text-primary text-base lg:text-lg">speed</span>
+                    </div>
+                    <h2 class="text-lg lg:text-2xl font-bold text-primary mt-1" id="kpi-aprovechamiento">0.00</h2>
+                    <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                        Desempeño de la comunicación comparado con el promedio global.</p>
+                </div>
+                <div
+                    class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between">
+                    <div class="absolute left-0 top-0 w-1 h-full bg-secondary"></div>
+                    <div class="flex justify-between items-start">
+                        <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Total Emisiones
+                        </p>
+                        <span class="material-icons text-secondary text-base lg:text-lg">rss_feed</span>
+                    </div>
+                    <h2 class="text-lg lg:text-2xl font-bold text-secondary mt-1" id="kpi-total">0</h2>
+                    <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                        Volumen total de impactos logrados en medios de comunicación.</p>
+                </div>
+
+                <!-- Nuevos KPIs de Rankings -->
+                <div
+                    class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between">
+                    <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                    <div class="flex justify-between items-start">
+                        <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Top Dependencia
+                        </p>
+                        <span class="material-icons text-primary text-base lg:text-lg">apartment</span>
+                    </div>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <h2 class="text-sm lg:text-lg font-bold text-primary truncate" id="kpi-dep">-</h2>
+                        <span class="text-[10px] font-bold text-primary/70" id="kpi-dep-val"></span>
+                    </div>
+                    <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                        Área con mayor presencia mediática en el periodo.</p>
+                </div>
+                <div
+                    class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between">
+                    <div class="absolute left-0 top-0 w-1 h-full bg-secondary"></div>
+                    <div class="flex justify-between items-start">
+                        <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Top Tema</p>
+                        <span class="material-icons text-secondary text-base lg:text-lg">sell</span>
+                    </div>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <h2 class="text-sm lg:text-lg font-bold text-secondary truncate" id="kpi-tema">-</h2>
+                        <span class="text-[10px] font-bold text-secondary/70" id="kpi-tema-val"></span>
+                    </div>
+                    <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                        Asunto o mensaje con mayor alcance en la agenda pública.</p>
+                </div>
+                <div
+                    class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between">
+                    <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                    <div class="flex justify-between items-start">
+                        <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Top Municipio
+                        </p>
+                        <span class="material-icons text-primary text-base lg:text-lg">location_on</span>
+                    </div>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <h2 class="text-sm lg:text-lg font-bold text-primary truncate" id="kpi-mun">-</h2>
+                        <span class="text-[10px] font-bold text-primary/70" id="kpi-mun-val"></span>
+                    </div>
+                    <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                        Zona geográfica con mayor registro de cobertura informativa.</p>
+                </div>
+                <div
+                    class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between">
+                    <div class="absolute left-0 top-0 w-1 h-full bg-secondary"></div>
+                    <div class="flex justify-between items-start">
+                        <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Medio con mayor difusión
+                        </p>
+                        <span class="material-icons text-secondary text-base lg:text-lg">newspaper</span>
+                    </div>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <h2 class="text-sm lg:text-lg font-bold text-secondary truncate" id="kpi-medio">-</h2>
+                        <span class="text-[10px] font-bold text-secondary/70" id="kpi-medio-val"></span>
+                    </div>
+                    <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                        Empresa periodística con mayor volumen de difusión.</p>
+                </div>
+            </div>
+            <!-- Tab: Productividad -->
+            <div class="tab-content active space-y-6" id="tab-productividad">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+                    <div
+                        class="col-span-1 lg:col-span-8 bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm">
+                        <div class="flex flex-col justify-center items-center gap-2 mb-6">
+                            <h3 class="text-xs lg:text-sm font-bold text-primary uppercase flex items-center gap-2">
+                                <span class="material-icons">compare_arrows</span>
+                                Productividad por Dependencia
+                            </h3>
+                            <div class="flex items-center gap-4 text-[10px] font-bold">
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3 h-3 bg-secondary rounded"></span> Comunicados
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-3 h-3 bg-primary rounded"></span> Reproducción en medios
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-[300px] lg:h-[400px] elastic">
+                            <canvas id="g_butterfly"></canvas>
+                        </div>
+                        <!-- Nuevo gráfico: Total de Elementos por Dependencia (Todos) -->
+                        <div class="mt-6 pt-6 border-t border-outline-variant">
+                            <div class="flex flex-col justify-center items-center gap-2 mb-6">
+                                <h3 class="text-xs lg:text-sm font-bold text-primary uppercase flex items-center gap-2">
+                                    <span class="material-icons">bar_chart</span>
+                                    Total de Elementos por Dependencia (Todos)
+                                </h3>
+                            </div>
+                            <div class="h-[300px] lg:h-[400px] elastic">
+                                <canvas id="g_dep_todos"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="col-span-1 lg:col-span-4 bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm">
+                        <h3 class="text-xs lg:text-sm font-bold text-primary uppercase mb-6 text-center">Sentimiento</h3>
+                        <div class="h-[250px] lg:h-[300px]">
+                            <canvas id="g_doughnut"></canvas>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 mt-6">
+                            <div class="text-center p-2 bg-surface-container-low rounded">
+                                <div class="text-[9px] lg:text-[10px] font-bold text-[#2a9d8f]">POS</div>
+                                <div class="text-xs lg:text-sm font-bold" id="pct-pos">0%</div>
+                            </div>
+                            <div class="text-center p-2 bg-surface-container-low rounded">
+                                <div class="text-[9px] lg:text-[10px] font-bold text-[#ffb703]">INF</div>
+                                <div class="text-xs lg:text-sm font-bold" id="pct-inf">0%</div>
+                            </div>
+                            <div class="text-center p-2 bg-surface-container-low rounded">
+                                <div class="text-[9px] lg:text-[10px] font-bold text-[#e63946]">NEG</div>
+                                <div class="text-xs lg:text-sm font-bold" id="pct-neg">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="col-span-1 lg:col-span-12 bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                            <h3 class="text-xs lg:text-sm font-bold text-primary uppercase flex items-center gap-2">
+                                <span class="material-icons">timeline</span>
+                                Distribución Temporal
+                            </h3>
+                            <div class="flex items-center gap-3">
+                                <div id="timeline-period-label"
+                                    class="text-[10px] font-bold text-secondary bg-secondary/10 px-3 py-1 rounded-full">
+                                </div>
+                                <select id="sel-Timeline-Range"
+                                    class="text-[10px] font-bold rounded-lg border-outline-variant py-1 focus:ring-primary"
+                                    onchange="handleTimelineRangeChange()">
+                                    <option value="Todos">Todo</option>
+                                    <option value="Hoy">Hoy</option>
+                                    <option value="Ayer">Ayer</option>
+                                    <option value="Semana">Semana</option>
+                                    <option value="MesActual">Mes</option>
+                                </select>
+                                <button
+                                    class="text-[10px] lg:text-xs px-3 py-1 bg-surface-container-low border border-outline-variant rounded-full hover:bg-surface-container-high transition-colors font-bold text-primary flex items-center gap-1"
+                                    onclick="toggleTimelineType()">
+                                    <span class="material-icons text-sm">swap_horiz</span>
+                                    Vista
+                                </button>
+                            </div>
+                        </div>
+                        <div class="h-[300px] lg:h-[400px]">
+                            <canvas id="g_timeline"></canvas>
+                        </div>
+                        <div class="mt-6 pt-6 border-t border-outline-variant">
+                            <h3
+                                class="text-xs lg:text-sm font-bold text-primary uppercase mb-4 flex items-center gap-2">
+                                <span class="material-icons">bar_chart</span> Medios con mayor difusión
+                            </h3>
+                            <div class="h-[250px] lg:h-[300px]">
+                                <canvas id="g_medios_prod"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="tab-comunicados">
+                <div id="comunicados-y-fichas-main-view" class="space-y-6">
+                    <div id="comunicados-main-view"
+                        class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+                        <div class="p-4 lg:p-6 border-b border-outline-variant">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <h3 class="text-xs lg:text-sm font-bold text-primary uppercase flex items-center gap-2">
+                                    <span class="material-icons">list_alt</span>
+                                    Lista de comunicados
+                                </h3>
+                                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                                    <div class="relative flex-1 sm:flex-initial">
+                                        <span
+                                            class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+                                        <input
+                                            class="pl-10 pr-4 py-1.5 w-full sm:w-64 bg-white border border-outline-variant rounded-lg text-xs"
+                                            id="table-search" placeholder="Buscar..." type="text" />
+                                    </div>
+                                    <select class="text-xs border border-outline-variant rounded-lg px-2 py-1.5"
+                                        id="items-per-page" onchange="changeItemsPerPage()">
+                                        <option value="10" selected>10 por pág.</option>
+                                        <option value="20">20 por pág.</option>
+                                        <option value="50">50 por pág.</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="bg-surface-container-low border-b border-outline-variant">
+                                        <th
+                                            class="px-4 lg:px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
+                                            Comunicado</th>
+                                        <th
+                                            class="px-4 lg:px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider hidden sm:table-cell">
+                                            Dependencia</th>
+                                        <th
+                                            class="px-4 lg:px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider text-center">
+                                            Impactos</th>
+                                        <th
+                                            class="px-4 lg:px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider text-right">
+                                            Medios</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/30" id="table-comunicados-body"></tbody>
+                            </table>
+                        </div>
+                        <div id="pagination-container"
+                            class="px-4 lg:px-6 py-3 flex justify-between items-center bg-surface-container-low border-t border-outline-variant text-[10px] font-bold text-on-surface-variant">
+                        </div>
+                    </div>
+                    
+                    <div id="fichas-main-view">
+                        <div class="bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm mb-6">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                                <h3 class="text-xs lg:text-sm font-bold text-primary uppercase flex items-center gap-2">
+                                    <span class="material-icons">description</span>
+                                    Fichas de Análisis
+                                </h3>
+                                <div class="flex items-center gap-2 w-full sm:w-auto">
+                                    <input type="text" id="fichas-search" placeholder="Buscar por titular o ID..."
+                                        class="text-xs rounded-lg border-outline-variant py-1.5 focus:ring-primary w-full sm:w-64"
+                                        oninput="renderFichasTable()">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="titulares-list">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="comunicados-detail-view"
+                    class="hidden bg-surface rounded-xl border border-outline-variant shadow-sm p-4 lg:p-6 space-y-6">
+                    <div class="flex items-center justify-between">
+                        <button onclick="closeComDetail()"
+                            class="flex items-center gap-2 text-primary font-bold hover:underline text-xs">
+                            <span class="material-icons text-sm">arrow_back</span> Volver a la lista
+                        </button>
+                        <div id="com-detail-id"
+                            class="text-[10px] font-mono text-on-surface-variant bg-surface-container-low px-2 py-1 rounded">
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <h2 id="com-detail-title" class="text-base lg:text-lg font-bold text-primary leading-tight">
+                        </h2>
+                        <div id="com-detail-media-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="fichas-detail-view" class="hidden animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div class="bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm mb-6">
+                        <div class="flex items-center gap-4 mb-6">
+                            <button onclick="closeFichaDetail()"
+                                class="p-2 hover:bg-surface-container-low rounded-lg transition-colors text-primary">
+                                <span class="material-icons">arrow_back</span>
+                            </button>
+                            <div>
+                                <h3 class="text-sm lg:text-lg font-bold text-primary leading-tight"
+                                    id="ficha-detail-title"></h3>
+                                <p class="text-[10px] font-mono text-on-surface-variant mt-1" id="ficha-detail-id"></p>
+                            </div>
+                        </div>
+                        <div id="ficha-detail-content" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content space-y-6" id="tab-analisis">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                    <div
+                        class="bg-surface p-4 lg:p-5 rounded-xl border border-outline-variant shadow-sm h-72 lg:h-80 elastic">
+                        <h4 class="text-[10px] lg:text-xs font-bold text-primary uppercase mb-4">Impacto por Dependencia
+                        </h4>
+                        <canvas id="g_dep"></canvas>
+                    </div>
+                    <div
+                        class="bg-surface p-4 lg:p-5 rounded-xl border border-outline-variant shadow-sm h-72 lg:h-80 elastic">
+                        <h4 class="text-[10px] lg:text-xs font-bold text-primary uppercase mb-4">Impacto por Medio</h4>
+                        <canvas id="g_medio"></canvas>
+                    </div>
+                    <div
+                        class="bg-surface p-4 lg:p-5 rounded-xl border border-outline-variant shadow-sm h-72 lg:h-80 elastic">
+                        <h4 class="text-[10px] lg:text-xs font-bold text-primary uppercase mb-4">Principales Temas</h4>
+                        <canvas id="g_temas"></canvas>
+                    </div>
+                    <div class="bg-surface p-4 lg:p-5 rounded-xl border border-outline-variant shadow-sm h-72 lg:h-80">
+                        <h4 class="text-[10px] lg:text-xs font-bold text-primary uppercase mb-4">Distribución por
+                            Municipio</h4>
+                        <canvas id="g_mun"></canvas>
+                    </div>
+                    <div class="bg-surface p-4 lg:p-5 rounded-xl border border-outline-variant shadow-sm h-72 lg:h-80">
+                        <h4 class="text-[10px] lg:text-xs font-bold text-primary uppercase mb-4">Distribución por
+                            Organismo</h4>
+                        <canvas id="g_org"></canvas>
+                    </div>
+                    <div class="bg-surface p-4 lg:p-5 rounded-xl border border-outline-variant shadow-sm h-72 lg:h-80">
+                        <h4 class="text-[10px] lg:text-xs font-bold text-primary uppercase mb-4">Distribución de Género
+                        </h4>
+                        <canvas id="g_gen"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="tab-gobernador">
+                <!-- Governor KPIs -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 mb-6" id="gov-kpi-container">
+                    <div class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between" style="border-left: 4px solid #611232;">
+                        <div class="flex justify-between items-start">
+                            <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Rendimiento (Gob)</p>
+                            <span class="material-icons text-primary text-base lg:text-lg">trending_up</span>
+                        </div>
+                        <h2 class="text-lg lg:text-2xl font-bold text-primary mt-1" id="gov-kpi-rendimiento">0.00</h2>
+                        <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                            Promedio de publicaciones por comunicado del Gobernador.</p>
+                    </div>
+                    <div class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between" style="border-left: 4px solid #A57F2C;">
+                        <div class="flex justify-between items-start">
+                            <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Participación (Gob)</p>
+                            <span class="material-icons text-secondary text-base lg:text-lg">pie_chart</span>
+                        </div>
+                        <h2 class="text-lg lg:text-2xl font-bold text-secondary mt-1" id="gov-kpi-eficacia">0%</h2>
+                        <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                            Participación de cobertura del Gobernador en el impacto total.</p>
+                    </div>
+                    <div class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between" style="border-left: 4px solid #611232;">
+                        <div class="flex justify-between items-start">
+                            <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Aprovechamiento (Gob)</p>
+                            <span class="material-icons text-primary text-base lg:text-lg">speed</span>
+                        </div>
+                        <h2 class="text-lg lg:text-2xl font-bold text-primary mt-1" id="gov-kpi-aprovechamiento">0.00</h2>
+                        <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                            Rendimiento comparado con el promedio global.</p>
+                    </div>
+                    <div class="bg-surface p-3 lg:p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden group flex flex-col justify-between" style="border-left: 4px solid #A57F2C;">
+                        <div class="flex justify-between items-start">
+                            <p class="text-[9px] lg:text-[10px] font-bold text-on-surface-variant uppercase">Total Emisiones (Gob)</p>
+                            <span class="material-icons text-secondary text-base lg:text-lg">rss_feed</span>
+                        </div>
+                        <h2 class="text-lg lg:text-2xl font-bold text-secondary mt-1" id="gov-kpi-total">0</h2>
+                        <p class="text-[8px] text-on-surface-variant italic border-t border-outline-variant/30 pt-1 mt-1">
+                            Volumen total de impactos logrados por el Gobernador.</p>
+                    </div>
+                </div>
+
+                <!-- Governor Main Views Container -->
+                <div id="gov-main-views-container" class="space-y-6">
+                    <!-- Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Chart 1: Stacked Bar Chart of Mentions -->
+                        <div class="bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm h-[680px]">
+                            <h3 class="text-xs lg:text-sm font-bold text-primary uppercase mb-4 text-center">
+                                Menciones en Organismo (Gobernador y Titular)
+                            </h3>
+                            <div class="h-[600px]">
+                                <canvas id="g_gov_mentions"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart 2: Treemap of Themes -->
+                        <div class="bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm h-[680px]">
+                            <h3 class="text-xs lg:text-sm font-bold text-primary uppercase mb-4 text-center">
+                                Temas del Gobernador
+                            </h3>
+                            <div class="h-[600px]">
+                                <div id="treemap-container" class="w-full h-full relative overflow-hidden rounded-lg min-h-[300px]"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Governor Fichas List -->
+                    <div class="bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm mb-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                            <h3 class="text-xs lg:text-sm font-bold text-primary uppercase flex items-center gap-2">
+                                <span class="material-icons">description</span>
+                                Fichas de Análisis - Gobernador
+                            </h3>
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <input type="text" id="gov-fichas-search" placeholder="Buscar por titular o ID..."
+                                    class="text-xs rounded-lg border-outline-variant py-1.5 focus:ring-primary w-full sm:w-64"
+                                    oninput="renderGovFichasTable()">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="gov-titulares-list">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Governor Ficha Detail View -->
+                <div id="gov-fichas-detail-view" class="hidden animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div class="bg-surface p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm mb-6">
+                        <div class="flex items-center gap-4 mb-6">
+                            <button onclick="closeGovFichaDetail()"
+                                class="p-2 hover:bg-surface-container-low rounded-lg transition-colors text-primary">
+                                <span class="material-icons">arrow_back</span>
+                            </button>
+                            <div>
+                                <h3 class="text-sm lg:text-lg font-bold text-primary leading-tight"
+                                    id="gov-ficha-detail-title"></h3>
+                                <p class="text-[10px] font-mono text-on-surface-variant mt-1" id="gov-ficha-detail-id"></p>
+                            </div>
+                        </div>
+                        <div id="gov-ficha-detail-content" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxDq6NSZKabgFR3yqSPv7PBqet4b7jIcqb34KIgD3GnAC4aUBF8ALdytkXtJ-88xGLZ/exec';
+        const SEMAFORO_COLORS = { 'Positiva': '#2a9d8f', 'Informativa': '#ffb703', 'Negativa': '#e63946', 'Todos': '#611232' };
+        
+        function formatChartValue(v) {
+            if (v === null || v === undefined || v <= 0) return '';
+            const val = Number(v);
+            if (isNaN(val)) return String(v);
+            if (val >= 1000000) return (val / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+            if (val >= 1000) return (val / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+            return val.toLocaleString('en-US');
+        }
+
+        function formatNumberWithCommas(v) {
+            if (v === null || v === undefined || v === '') return '';
+            const val = Number(v);
+            if (isNaN(val)) return String(v);
+            return val.toLocaleString('en-US');
+        }
+
+        let rData = [];
+        let vCharts = {};
+        let timelineType = 'bar';
+        const vColsHierarchy = ["Estatus", "Dependencia", "ID_Emision", "Canal", "Medio", "Municipio", "Organismo", "Género"];
+        const paletteDefault = ['#611232', '#A57F2C', '#7E183B', '#D4AF37', '#4D4D4D', '#C0C0C0', '#800000', '#B8860B', '#808080', '#2a9d8f', '#ffb703', '#e63946'];
+
+        let currentPage = 1;
+        let itemsPerPage = 10; // Default changed to 10
+        let currentTableData = [];
+        let currentFilteredData = [];
+        let currentGovFilteredData = []; // Governor filtered data
+        let redrawTimeout;
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-hidden');
+            setTimeout(() => { Object.values(vCharts).forEach(c => c.resize()); }, 300);
+        }
+
+        async function start() {
+            const overlay = document.getElementById('loading-overlay');
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error("API Error");
+                const rawData = await response.json();
+                rData = normalizeData(rawData).map(d => {
+                    let dateObj = new Date(d.fecha);
+                    if (isNaN(dateObj.getTime())) {
+                        if (d.fecha.includes('-')) {
+                            const parts = d.fecha.split(/[-T :]/);
+                            dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                        } else if (d.fecha.includes('/')) {
+                            const parts = d.fecha.split('/');
+                            dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                        }
+                    }
+                    if (isNaN(dateObj.getTime())) return null;
+                    const yyyy = dateObj.getFullYear(), mm = dateObj.getMonth() + 1, dd = dateObj.getDate();
+                    return {
+                        ...d, _date: dateObj,
+                        _month: `${yyyy}-${String(mm).padStart(2, '0')}`,
+                        _monthLabel: `${["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mm - 1]}-${String(yyyy).slice(-2)}`,
+                        _dayLabel: `${dd}-${["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mm - 1]}`
+                    };
+                }).filter(x => x);
+                initFilterStructure();
+                updateFilters();
+                if (overlay) overlay.classList.add('hidden');
+                if (window.innerWidth < 1024) document.getElementById('sidebar').classList.add('sidebar-hidden');
+            } catch (e) {
+                console.error("Init Error:", e);
+                if (overlay) overlay.innerHTML = `<div class="text-center p-8 bg-white rounded-xl shadow-xl"><h2 class="text-xl font-bold text-primary mb-2">Error al cargar datos</h2><button onclick="location.reload()" class="bg-primary text-white px-6 py-2 rounded-lg font-bold">Reintentar</button></div>`;
+            }
+        }
+
+        function normalizeData(rawData) {
+            const keyMap = { 'id': 'id_emision', 'id emisión': 'id_emision', 'género': 'género', 'genero': 'género', 'canal de medios': 'canal' };
+            return rawData.map(item => {
+                const row = {};
+                for (let key in item) {
+                    const lowerKey = key.trim().toLowerCase();
+                    const mappedKey = keyMap[lowerKey] || lowerKey;
+                    let val = String(item[key] || '').trim();
+                    if (mappedKey === 'id_emision') val = val.toUpperCase().replace(/\s+/g, '');
+                    row[mappedKey] = val;
+                }
+                return row;
+            });
+        }
+
+        function initFilterStructure() {
+            const container = document.getElementById('f-dynamic-cont');
+            container.innerHTML = "";
+            ["Canal", "Medio", "Municipio", "Organismo", "Género"].forEach(col => {
+                const div = document.createElement('div');
+                div.className = "space-y-1";
+                div.innerHTML = `<label class="text-[10px] font-bold text-primary uppercase">${col}</label><select class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 focus:ring-primary focus:border-primary" id="sel-${col}" onchange="updateFilters()"></select>`;
+                container.appendChild(div);
+            });
+        }
+
+        function handleDateRangeChange() {
+            const range = document.getElementById('sel-Fecha-Range').value;
+            document.getElementById('custom-date-cont').classList.toggle('hidden', range !== 'Custom');
+            updateFilters();
+        }
+
+        function handleTimelineRangeChange() {
+            const range = document.getElementById('sel-Timeline-Range').value;
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            let start = null, end = new Date();
+            end.setHours(23, 59, 59);
+
+            if (range === 'Hoy') { start = new Date(now); }
+            else if (range === 'Ayer') { start = new Date(now); start.setDate(now.getDate() - 1); end = new Date(start); end.setHours(23, 59, 59); }
+            else if (range === 'Semana') { start = new Date(now); start.setDate(now.getDate() - 7); }
+            else if (range === 'MesActual') { start = new Date(now.getFullYear(), now.getMonth(), 1); }
+
+            const label = document.getElementById('timeline-period-label');
+            if (range === 'Todos') label.innerText = "Histórico";
+            else label.innerText = `${start.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} - ${end.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`;
+
+            renderSmartTimeline(currentFilteredData, start, end);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.onclick.toString().includes(tabId));
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            const kpiContainer = document.getElementById('kpi-container');
+            if (kpiContainer) {
+                if (tabId === 'gobernador') {
+                    kpiContainer.classList.add('hidden');
+                } else {
+                    kpiContainer.classList.remove('hidden');
+                }
+            }
+            
+            if (window.innerWidth < 1024) document.getElementById('sidebar').classList.add('sidebar-hidden');
+            applyFilters();
+        }
+
+        function updateFilters() {
+            const f = getCurrentFilterState();
+            vColsHierarchy.forEach(col => {
+                const s = document.getElementById(`sel-${col}`);
+                if (!s && col !== "ID_Emision") return;
+                
+                if (col === "ID_Emision") {
+                    let sourceItems = rData.filter(d => {
+                        if (f.OficialOnly) {
+                            const g = String(d['género'] || d['genero'] || '').toLowerCase();
+                            if (g !== 'boletín' && g !== 'boletin') return false;
+                        }
+                        if (f.TitularOnly) {
+                            if (String(d.organismo || '').toLowerCase() !== 'titular') return false;
+                        }
+                        if (f.FechaStart && d._date < f.FechaStart) return false;
+                        if (f.FechaEnd && d._date > f.FechaEnd) return false;
+                        if (f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
+                        for (let otherCol of vColsHierarchy) {
+                            if (otherCol === col) continue;
+                            const val = f[otherCol];
+                            if (val === "Todos" || (Array.isArray(val) && val.length === 0)) continue;
+                            const dVal = String(d[otherCol.toLowerCase()] || "N/A");
+                            if (Array.isArray(val)) { if (!val.includes(dVal)) return false; } else { if (dVal !== val) return false; }
+                        }
+                        return true;
+                    });
+                    renderIdDropdownOptions(sourceItems, f[col]);
+                    return;
+                }
+
+                let sourceItems = rData.filter(d => {
+                    if (f.OficialOnly) {
+                        const g = String(d['género'] || d['genero'] || '').toLowerCase();
+                        if (g !== 'boletín' && g !== 'boletin') return false;
+                    }
+                    if (f.TitularOnly) {
+                        if (String(d.organismo || '').toLowerCase() !== 'titular') return false;
+                    }
+                    if (f.FechaStart && d._date < f.FechaStart) return false;
+                    if (f.FechaEnd && d._date > f.FechaEnd) return false;
+                    if (f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
+                    
+                    for (let otherCol of vColsHierarchy) {
+                        if (otherCol === col) continue;
+                        const val = f[otherCol];
+                        if (val === "Todos" || (Array.isArray(val) && val.length === 0)) continue;
+
+                        if (otherCol === "ID_Emision") {
+                            const dVal = String(d[otherCol.toLowerCase()] || "N/A");
+                            const cleanVal = val.toUpperCase().replace(/\s+/g, '');
+                            if (cleanVal && !dVal.includes(cleanVal)) return false;
+                            continue;
+                        }
+
+                        const dVal = String(d[otherCol.toLowerCase()] || "N/A");
+                        if (Array.isArray(val)) { if (!val.includes(dVal)) return false; } else { if (dVal !== val) return false; }
+                    }
+                    return true;
+                });
+                renderSelectOptions(s, col, sourceItems, f[col]);
+            });
+            debouncedApplyFilters();
+        }
+
+        function debouncedApplyFilters() {
+            clearTimeout(redrawTimeout);
+            redrawTimeout = setTimeout(() => applyFilters(), 300);
+        }
+
+        function renderSelectOptions(select, col, items, activeValue) {
+            const counts = {};
+            items.forEach(d => { const v = String(d[col.toLowerCase()] || "N/A"); counts[v] = (counts[v] || 0) + 1; });
+            const sorted = Object.keys(counts).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+            let html = `<option value="Todos">Todos (${sorted.length})</option>`;
+            sorted.forEach(k => {
+                const isSelected = Array.isArray(activeValue) ? activeValue.includes(k) : k === activeValue;
+                html += `<option ${isSelected ? 'selected' : ''} value="${k}">${k} (${counts[k]})</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        function renderIdDropdownOptions(items, activeValue) {
+            const dropdown = document.getElementById('sel-ID_Emision-dropdown');
+            if (!dropdown) return;
+            const counts = {};
+            items.forEach(d => { const v = String(d.id_emision || "N/A"); counts[v] = (counts[v] || 0) + 1; });
+            
+            const filterText = (activeValue && activeValue !== "Todos") ? activeValue.toUpperCase().replace(/\s+/g, '') : "";
+            let sorted = Object.keys(counts).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+            
+            if (filterText) {
+                sorted = sorted.filter(k => k.includes(filterText));
+            }
+
+            let html = `<div class="p-2 cursor-pointer hover:bg-primary/10 hover:text-primary font-bold ${(!activeValue || activeValue === "Todos") ? 'bg-primary/5 text-primary' : ''}" onclick="selectIdOption('Todos')">Todos (${sorted.length})</div>`;
+            sorted.forEach(k => {
+                const isSelected = k === activeValue;
+                html += `<div class="p-2 cursor-pointer hover:bg-primary/10 hover:text-primary ${isSelected ? 'bg-primary/5 text-primary font-bold' : ''}" onclick="selectIdOption('${k}')">${k} (${counts[k]})</div>`;
+            });
+            dropdown.innerHTML = html;
+        }
+
+        function selectIdOption(value) {
+            const input = document.getElementById('sel-ID_Emision');
+            if (input) {
+                input.value = (value === 'Todos') ? '' : value;
+                updateFilters();
+            }
+            hideIdDropdown();
+        }
+
+        function showIdDropdown() {
+            const dropdown = document.getElementById('sel-ID_Emision-dropdown');
+            if (dropdown) dropdown.classList.remove('hidden');
+        }
+
+        function hideIdDropdown() {
+            setTimeout(() => {
+                const dropdown = document.getElementById('sel-ID_Emision-dropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+            }, 200);
+        }
+
+        function getCurrentFilterState() {
+            const rangeSelect = document.getElementById('sel-Fecha-Range').value;
+            let start = null, end = null;
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            if (rangeSelect === 'Hoy') { start = new Date(now); end = new Date(now); end.setHours(23, 59, 59); }
+            else if (rangeSelect === 'Ayer') { start = new Date(now); start.setDate(now.getDate() - 1); end = new Date(start); end.setHours(23, 59, 59); }
+            else if (rangeSelect === 'Semana') { start = new Date(now); start.setDate(now.getDate() - 7); end = new Date(now); end.setHours(23, 59, 59); }
+            else if (rangeSelect === 'MesActual') { start = new Date(now.getFullYear(), now.getMonth(), 1); end = new Date(now.getFullYear(), now.getMonth() + 1, 0); }
+            else if (rangeSelect === 'MesAnterior') { start = new Date(now.getFullYear(), now.getMonth() - 1, 1); end = new Date(now.getFullYear(), now.getMonth(), 0); }
+            else if (rangeSelect === 'Custom') {
+                const s = document.getElementById('date-start').value, e = document.getElementById('date-end').value;
+                if (s) start = new Date(s + "T00:00:00"); if (e) end = new Date(e + "T23:59:59");
+            }
+            const state = {
+                Estatus: document.getElementById('sel-Estatus').value, FechaRange: rangeSelect, FechaStart: start, FechaEnd: end,
+                Limit: parseInt(document.getElementById('an-x').value) || 10,
+                Mode: document.getElementById('an-mode').value,
+                OficialOnly: false,
+                TitularOnly: document.getElementById('chk-titular-organismo').checked
+            };
+            vColsHierarchy.forEach(col => {
+                const el = document.getElementById(`sel-${col}`);
+                if (!el) return;
+                if (col === "Dependencia") state[col] = Array.from(el.selectedOptions).map(o => o.value).filter(v => v !== "Todos");
+                else state[col] = el.value || "Todos";
+            });
+            return state;
+        }
+
+        function applyFilters() {
+            const f = getCurrentFilterState();
+            const globalData = rData.filter(d => {
+                if (f.OficialOnly) {
+                    const g = String(d['género'] || d['genero'] || '').toLowerCase();
+                    if (g !== 'boletín' && g !== 'boletin') return false;
+                }
+                if (f.TitularOnly) {
+                    if (String(d.organismo || '').toLowerCase() !== 'titular') return false;
+                }
+                if (f.FechaStart && d._date < f.FechaStart) return false;
+                if (f.FechaEnd && d._date > f.FechaEnd) return false;
+                if (f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
+                return true;
+            });
+            const partialData = globalData.filter(d => {
+                const depVal = f.Dependencia;
+                if (depVal && depVal.length > 0 && !depVal.includes(String(d.dependencia || "N/A"))) return false;
+                if (f.Canal !== "Todos" && String(d.canal || "N/A") !== f.Canal) return false;
+                return true;
+            });
+            const filtered = globalData.filter(d => {
+                return vColsHierarchy.every(col => {
+                    if (col === "Estatus") return true;
+                    const val = f[col];
+                    if (val === "Todos" || (Array.isArray(val) && val.length === 0)) return true;
+
+                    if (col === "ID_Emision") {
+                        const dVal = String(d[col.toLowerCase()] || "N/A");
+                        const cleanVal = val.toUpperCase().replace(/\s+/g, '');
+                        if (!cleanVal) return true;
+                        return dVal.includes(cleanVal);
+                    }
+
+                    const dVal = String(d[col.toLowerCase()] || "N/A");
+                    return Array.isArray(val) ? val.includes(dVal) : dVal === val;
+                });
+            });
+            renderKPIs(filtered, globalData, f);
+            try {
+                renderCharts(filtered, partialData, f);
+            } catch (e) {
+                console.error(e);
+            }
+            renderTable(filtered);
+            currentFilteredData = filtered; // Guardamos los datos filtrados globalmente
+            renderFichasTable(filtered);
+
+            // Update Governor content
+            const govData = filtered.filter(d => String(d.dependencia || '').toLowerCase() === 'gobernador');
+            currentGovFilteredData = govData;
+            renderGovKPIs(govData, filtered);
+            renderGovCharts(filtered, govData, f);
+            renderGovFichasTable(govData);
+
+            const timelineRangeLabel = document.getElementById('timeline-period-label');
+            if (timelineRangeLabel) {
+                if (!timelineRangeLabel.innerText) {
+                    handleTimelineRangeChange();
+                } else {
+                    const timelineRange = document.getElementById('sel-Timeline-Range').value;
+                    let start = null, end = new Date();
+                    if (timelineRange !== 'Todos') {
+                        handleTimelineRangeChange();
+                    } else {
+                        renderSmartTimeline(filtered);
+                    }
+                }
+            }
+        }
+
+        function renderKPIs(data, globalData, f) {
+            const subTitleEl = document.getElementById('dash-subtitle');
+            if (subTitleEl) subTitleEl.innerText = `— ${f.FechaRange === "Todos" ? "Histórico" : f.FechaRange}`;
+            
+            const totalEl = document.getElementById('kpi-total');
+            if (totalEl) totalEl.innerText = formatNumberWithCommas(data.length);
+            
+            const uniqueIDs = (ds) => new Set(ds.map(d => d.id_emision).filter(id => id && id !== "N/A")).size;
+            const idsData = uniqueIDs(data), rendData = idsData > 0 ? (data.length / idsData) : 0;
+            
+            const rendEl = document.getElementById('kpi-rendimiento');
+            if (rendEl) rendEl.innerText = rendData.toFixed(2);
+            
+            const eficacia = globalData.length > 0 ? ((data.length / globalData.length) * 100).toFixed(1) : 0;
+            const eficEl = document.getElementById('kpi-eficacia');
+            if (eficEl) eficEl.innerText = `${eficacia}%`;
+            
+            const idsGlobal = uniqueIDs(globalData), rendGlobal = idsGlobal > 0 ? (globalData.length / idsGlobal) : 0;
+            const aprovechamiento = rendGlobal > 0 ? (rendData / rendGlobal).toFixed(2) : "0.00";
+            const aprovEl = document.getElementById('kpi-aprovechamiento');
+            if (aprovEl) aprovEl.innerText = aprovechamiento;
+            
+            const getTop = (key) => {
+                const counts = {};
+                data.forEach(d => { const v = d[key.toLowerCase()] || "N/A"; counts[v] = (counts[v] || 0) + 1; });
+                return Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || ["-", 0];
+            };
+            const [topDep, countDep] = getTop('Dependencia');
+            const [topTema, countTema] = getTop('Tema');
+            const [topMun, countMun] = getTop('Municipio');
+            const [topMed, countMed] = getTop('Medio');
+ 
+            const depEl = document.getElementById('kpi-dep');
+            if (depEl) depEl.innerText = topDep;
+            const depValEl = document.getElementById('kpi-dep-val');
+            if (depValEl) depValEl.innerText = countDep > 0 ? `${formatNumberWithCommas(countDep)} menciones` : '';
+            
+            const temaEl = document.getElementById('kpi-tema');
+            if (temaEl) temaEl.innerText = topTema;
+            const temaValEl = document.getElementById('kpi-tema-val');
+            if (temaValEl) temaValEl.innerText = countTema > 0 ? `${formatNumberWithCommas(countTema)} menciones` : '';
+            
+            const munEl = document.getElementById('kpi-mun');
+            if (munEl) munEl.innerText = topMun === "N/A" ? "Estatal" : topMun;
+            const munValEl = document.getElementById('kpi-mun-val');
+            if (munValEl) munValEl.innerText = countMun > 0 ? `${formatNumberWithCommas(countMun)} menciones` : '';
+            
+            const pct = data.length > 0 ? ((countMed / data.length) * 100).toFixed(1) : 0;
+            const medEl = document.getElementById('kpi-medio');
+            if (medEl) medEl.innerText = topMed;
+            const medValEl = document.getElementById('kpi-medio-val');
+            if (medValEl) medValEl.innerText = `${pct}% del total`;
+
+            const color = SEMAFORO_COLORS[f.Estatus] || SEMAFORO_COLORS['Todos'];
+            document.querySelectorAll('#kpi-container > div').forEach(card => {
+                card.style.borderLeftColor = color;
+                const h2 = card.querySelector('h2'); if (h2) h2.style.color = color;
+            });
+
+            const total = data.length || 1;
+            const counts = { Positiva: 0, Informativa: 0, Negativa: 0 };
+            data.forEach(d => { if (counts[d.estatus] !== undefined) counts[d.estatus]++; });
+            
+            const pPos = document.getElementById('pct-pos');
+            if (pPos) pPos.innerText = ((counts.Positiva / total) * 100).toFixed(0) + '%';
+            const pInf = document.getElementById('pct-inf');
+            if (pInf) pInf.innerText = ((counts.Informativa / total) * 100).toFixed(0) + '%';
+            const pNeg = document.getElementById('pct-neg');
+            if (pNeg) pNeg.innerText = ((counts.Negativa / total) * 100).toFixed(0) + '%';
+        }
+
+        function renderCharts(data, partialData, f) {
+            renderButterflyChart(partialData, f.Limit, f.Mode);
+            renderDepTodosChart(partialData, f.Limit, f.Mode);
+            renderChart('g_doughnut', data, 'estatus', 'Sentimiento', 'doughnut', 15, 'top');
+            renderMediosProdChart(data, f.Limit, f.Mode);
+
+            renderChart('g_dep', data, 'dependencia', 'Impacto por Dependencia', 'bar_stacked', f.Limit, f.Mode);
+            renderChart('g_medio', data, 'medio', 'Impacto por Medio', 'bar_stacked', f.Limit, f.Mode);
+            renderChart('g_temas', data, 'tema', 'Principales Temas', 'bar_stacked', f.Limit, f.Mode);
+            renderChart('g_mun', data, 'municipio', 'Distribución por Municipio', 'bar_stacked', f.Limit, f.Mode);
+            renderChart('g_org', data, 'organismo', 'Volumen por Organismo', 'bar_stacked', f.Limit, f.Mode);
+            renderChart('g_gen', data, 'género', 'Distribución de Género', 'bar_stacked', f.Limit, f.Mode);
+        }
+
+        function renderMediosProdChart(data, limit, mode) {
+            const ctx = document.getElementById('g_medios_prod'); if (!ctx) return;
+            const counts = {}; data.forEach(d => { const v = d.medio || "N/A"; counts[v] = (counts[v] || 0) + 1; });
+            let sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            if (mode === 'bottom') sorted = sorted.reverse();
+            const finalData = sorted.slice(0, limit);
+            const labels = finalData.map(x => x[0]), values = finalData.map(x => x[1]);
+
+            if (vCharts['g_medios_prod']) vCharts['g_medios_prod'].destroy();
+            vCharts['g_medios_prod'] = new Chart(ctx, {
+                type: 'bar', data: { labels, datasets: [{ label: 'Impactos', data: values, backgroundColor: '#611232', borderRadius: 4 }] },
+                options: {
+                    indexAxis: 'y', maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (v) => formatChartValue(v)
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatChartValue(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderButterflyChart(data, limit, mode) {
+            const ctx = document.getElementById('g_butterfly'); if (!ctx) return;
+            const grouped = {};
+            data.forEach(d => {
+                const dep = d.dependencia || "N/A", id = d.id_emision || "N/A";
+                const cleanId = id.trim().toUpperCase();
+                if (dep === "N/A" || cleanId === "" || cleanId === "N/A") return;
+                if (!grouped[dep]) grouped[dep] = { ids: new Set(), mentions: 0 };
+                grouped[dep].ids.add(id); grouped[dep].mentions++;
+            });
+            let sorted = Object.entries(grouped).sort((a, b) => b[1].mentions - a[1].mentions);
+            if (mode === 'bottom') sorted = sorted.reverse();
+            const finalData = sorted.slice(0, limit);
+            const labels = finalData.map(x => x[0]);
+            const maxIds = Math.max(...finalData.map(x => x[1].ids.size), 1);
+            const maxMentions = Math.max(...finalData.map(x => x[1].mentions), 1);
+            
+            const maxVal = Math.max(maxIds, maxMentions);
+            const gap = maxVal * 0.45;
+            const padding = maxVal * 0.1;
+
+            const floatingIdsData = finalData.map(x => ({ x: [-x[1].ids.size - gap, -gap], y: x[0], realValue: x[1].ids.size }));
+            const floatingMentionsData = finalData.map(x => ({ x: [gap, x[1].mentions + gap], y: x[0], realValue: x[1].mentions }));
+
+            if (vCharts['g_butterfly']) vCharts['g_butterfly'].destroy();
+            vCharts['g_butterfly'] = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Comunicados', data: floatingIdsData, backgroundColor: '#A57F2C', borderRadius: 2 }, { label: 'Impactos', data: floatingMentionsData, backgroundColor: '#611232', borderRadius: 2 }] },
+                options: {
+                    indexAxis: 'y', maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${formatChartValue(c.raw.realValue)}` } },
+                        datalabels: {
+                            color: '#444', anchor: (c) => c.datasetIndex === 0 ? 'start' : 'end', align: (c) => c.datasetIndex === 0 ? 'start' : 'end', offset: 6,
+                            font: { weight: 'bold', size: 10 }, 
+                            formatter: (v) => {
+                                const val = Math.abs(v.realValue);
+                                return val > 0 ? formatChartValue(val) : '';
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { min: -maxVal - gap - padding, max: maxVal + gap + padding, ticks: { display: false }, grid: { display: false }, border: { display: false } },
+                        y: { ticks: { display: false }, grid: { display: false }, border: { display: false } }
+                    }
+                },
+                plugins: [{
+                    id: 'centerLabels',
+                    afterDraw: (chart) => {
+                        const { ctx, scales: { x, y } } = chart; ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#611232'; ctx.font = 'bold 11px sans-serif';
+                        y.getTicks().forEach((tick, i) => { const yPos = y.getPixelForTick(i); const xPos = x.getPixelForValue(0); ctx.fillText(labels[i], xPos, yPos); }); ctx.restore();
+                    }
+                }]
+            });
+        }
+
+        function renderDepTodosChart(data, limit, mode) {
+            const ctx = document.getElementById('g_dep_todos'); if (!ctx) return;
+            const counts = {};
+            data.forEach(d => {
+                const dep = d.dependencia || "N/A";
+                counts[dep] = (counts[dep] || 0) + 1;
+            });
+            let sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            if (mode === 'bottom') sorted = sorted.reverse();
+            const finalData = sorted.slice(0, limit);
+            const labels = finalData.map(x => x[0]);
+            const values = finalData.map(x => x[1]);
+
+            if (ctx.parentElement.classList.contains('elastic')) {
+                ctx.parentElement.style.height = `${Math.max(300, labels.length * 30 + 100)}px`;
+            }
+            if (vCharts['g_dep_todos']) vCharts['g_dep_todos'].destroy();
+            vCharts['g_dep_todos'] = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Elementos', data: values, backgroundColor: '#611232', borderRadius: 4 }] },
+                options: {
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (v) => v > 0 ? formatChartValue(v) : ''
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatChartValue(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderChart(id, data, field, title, type, limit = 10, mode = 'top') {
+            const ctx = document.getElementById(id); if (!ctx) return;
+            const sentiments = ['Positiva', 'Informativa', 'Negativa'], sentimentColors = { 'Positiva': '#2a9d8f', 'Informativa': '#ffb703', 'Negativa': '#e63946' };
+            let labels = [], datasets = [];
+            if (type === 'bar_stacked') {
+                const grouped = {};
+                data.forEach(d => {
+                    const v = String(d[field] || "N/A"); if (!grouped[v]) grouped[v] = { total: 0, Positiva: 0, Informativa: 0, Negativa: 0 };
+                    grouped[v].total++; if (sentiments.includes(d.estatus)) grouped[v][d.estatus]++;
+                });
+                let sorted = Object.entries(grouped).sort((a, b) => b[1].total - a[1].total);
+                if (mode === 'bottom') sorted = sorted.reverse();
+                const finalData = sorted.slice(0, limit); labels = finalData.map(x => x[0]);
+                sentiments.forEach(s => datasets.push({ label: s, data: finalData.map(x => x[1][s]), backgroundColor: sentimentColors[s], borderWidth: 0 }));
+            } else {
+                const counts = {}; data.forEach(d => { const v = String(d[field] || "N/A"); counts[v] = (counts[v] || 0) + 1; });
+                let sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, limit); labels = sorted.map(x => x[0]);
+                let colors = paletteDefault; if (field === 'estatus') colors = labels.map(l => sentimentColors[l] || '#ccc');
+                datasets = [{ data: sorted.map(x => x[1]), backgroundColor: colors, borderWidth: 0 }];
+            }
+            if (ctx.parentElement.classList.contains('elastic')) ctx.parentElement.style.height = `${Math.max(300, labels.length * 30 + 100)}px`;
+            if (vCharts[id]) vCharts[id].destroy();
+
+            let chartType = 'bar';
+            if (id === 'g_doughnut') chartType = 'doughnut';
+            else if (id === 'g_gen' && type !== 'bar_stacked') chartType = 'pie';
+
+            vCharts[id] = new Chart(ctx, {
+                type: chartType, data: { labels, datasets },
+                options: {
+                    maintainAspectRatio: false, indexAxis: 'y',
+                    plugins: {
+                        legend: { display: type === 'bar_stacked' || chartType === 'pie', position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
+                        title: { display: !!title, text: title, color: '#611232', font: { size: 14, weight: 'bold' } },
+                        datalabels: {
+                            color: '#fff', font: { weight: 'bold', size: 10 },
+                            formatter: (v, context) => {
+                                if (chartType === 'doughnut' || chartType === 'pie') { const sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0); return ((v / sum) * 100).toFixed(0) + '%'; }
+                                return v > 0 ? formatChartValue(v) : '';
+                            }
+                        }
+                    },
+                    scales: (chartType === 'doughnut' || chartType === 'pie') ? {} : {
+                        x: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatChartValue(value);
+                                }
+                            }
+                        },
+                        y: { stacked: true }
+                    }
+                }
+            });
+        }
+
+        function renderSmartTimeline(filteredData, startDate = null, endDate = null) {
+            const ctx = document.getElementById('g_timeline'); if (!ctx) return;
+            const dataToUse = filteredData || currentFilteredData || rData;
+            const counts = {};
+            dataToUse.forEach(d => {
+                if (startDate && d._date < startDate) return;
+                if (endDate && d._date > endDate) return;
+                const k = d._date.toISOString().split('T')[0]; counts[k] = (counts[k] || 0) + 1;
+            });
+            const sortedLabels = Object.keys(counts).sort();
+            if (vCharts['g_timeline']) vCharts['g_timeline'].destroy();
+            vCharts['g_timeline'] = new Chart(ctx, {
+                type: timelineType, data: {
+                    labels: sortedLabels.map(l => {
+                        const date = new Date(l + "T12:00:00");
+                        const day = date.toLocaleDateString('es-ES', { weekday: 'short' }).toLowerCase();
+                        const d = date.getDate();
+                        const month = date.toLocaleDateString('es-ES', { month: 'short' }).toLowerCase().replace('.', '');
+                        const year = String(date.getFullYear()).slice(-2);
+                        return `${day} ${d} ${month} ${year}`;
+                    }), datasets: [{ label: 'Impactos', data: sortedLabels.map(l => counts[l]), backgroundColor: '#611232', borderColor: '#611232', fill: true, tension: 0.4 }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            display: true,
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#611232',
+                            font: { weight: 'bold', size: 9 },
+                            formatter: (v, context) => {
+                                if (context.chart.data.labels.length > 20 && v === 0) return '';
+                                return formatChartValue(v);
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { display: false },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatChartValue(value);
+                                }
+                            }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function formatDate(date) {
+            if (!date) return "S/F";
+            const d = new Date(date);
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        }
+
+        function formatGroupedMediaItems(mediaItems) {
+            const groupsMap = {};
+            mediaItems.forEach(it => {
+                const name = (it.medio || "N/A").trim();
+                const link = it['página'] || it['pagina'] || '';
+                if (!groupsMap[name]) {
+                    groupsMap[name] = {
+                        medio: name,
+                        links: [],
+                        dates: []
+                    };
+                }
+                if (link) {
+                    groupsMap[name].links.push(link);
+                }
+                if (it._date) {
+                    groupsMap[name].dates.push(it._date);
+                }
+            });
+
+            const groups = Object.values(groupsMap).map(g => {
+                g.dates.sort((a, b) => a.getTime() - b.getTime());
+                g.href = g.links.length > 0 ? getHref(g.links[0]) : '';
+                return g;
+            });
+
+            groups.sort((a, b) => {
+                const timeA = a.dates.length > 0 ? a.dates[0].getTime() : 0;
+                const timeB = b.dates.length > 0 ? b.dates[0].getTime() : 0;
+                if (timeA !== timeB) {
+                    return timeA - timeB;
+                }
+                return a.medio.localeCompare(b.medio, 'es', { sensitivity: 'base' });
+            });
+
+            return groups.map(g => {
+                const countBadge = g.dates.length > 1 
+                    ? `<span class="ml-1 bg-secondary/10 text-secondary text-[9px] px-1.5 py-0.5 rounded-full font-bold">x${g.dates.length}</span>` 
+                    : '';
+                const medioContent = g.href 
+                    ? `<a href="${g.href}" target="_blank" class="font-medium text-on-surface hover:underline hover:text-primary flex items-center">${g.medio}${countBadge}</a>` 
+                    : `<span class="font-medium text-on-surface flex items-center">${g.medio}${countBadge}</span>`;
+                
+                const uniqueDates = [...new Set(g.dates.map(d => formatDate(d)))];
+                const datesStr = uniqueDates.join(', ');
+                return `
+                    <div class="flex justify-between items-center text-[10px] border-b border-dashed border-outline-variant/30 pb-1 gap-2">
+                        <div class="truncate max-w-[70%]">${medioContent}</div>
+                        <span class="text-on-surface-variant italic whitespace-nowrap">${datesStr}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleTimelineType() { timelineType = timelineType === 'line' ? 'bar' : 'line'; applyFilters(); }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('table-comunicados-body');
+            if (!tbody) return;
+            const searchInput = document.getElementById('table-search');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+            
+            const grouped = {};
+            data.forEach(d => {
+                const id = d.id_emision || "N/A";
+                if (!grouped[id]) grouped[id] = { id, dependencia: d.dependencia, impacts: 0, items: [] };
+                grouped[id].impacts++;
+                grouped[id].items.push(d);
+            });
+            Object.values(grouped).forEach(g => {
+                const titleCounts = {};
+                g.items.forEach(it => {
+                    if (it.titular && it.titular.trim() !== "") {
+                        const t = it.titular.trim();
+                        titleCounts[t] = (titleCounts[t] || 0) + 1;
+                    }
+                });
+                const sortedTitles = Object.entries(titleCounts).sort((a, b) => b[1] - a[1]);
+                g.titular = sortedTitles.length > 0 ? sortedTitles[0][0] : "S/T";
+            });
+            currentTableData = Object.values(grouped).filter(item => (item.titular || "").toLowerCase().includes(searchTerm) || (item.id || "").toLowerCase().includes(searchTerm)).sort((a, b) => b.impacts - a.impacts);
+            const pageData = currentTableData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+            tbody.innerHTML = pageData.map(item => `<tr class="hover:bg-primary/5 even:bg-surface-container-low transition-colors text-xs border-b border-outline-variant/30"><td class="px-4 lg:px-6 py-3"><div class="font-bold text-primary line-clamp-2 leading-tight">${item.titular || "S/T"}</div><div class="text-[9px] text-on-surface-variant font-mono mt-1">ID: ${item.id}</div></td><td class="px-4 lg:px-6 py-3 hidden sm:table-cell">${item.dependencia || "N/A"}</td><td class="px-4 lg:px-6 py-3 text-center font-bold text-primary">${formatNumberWithCommas(item.impacts)}</td><td class="px-4 lg:px-6 py-3 text-right"><button class="text-primary font-bold hover:underline" onclick="showComDetail('${item.id}')">Ver medios</button></td></tr>`).join('');
+            renderPaginationControls(currentTableData.length);
+        }
+
+        function getHref(str) {
+            if (!str) return '';
+            str = str.trim();
+            if (str.startsWith('http://') || str.startsWith('https://')) return str;
+            if (str.startsWith('www.')) return 'https://' + str;
+            return '';
+        }
+
+        function showComDetail(id) {
+            const item = currentTableData.find(d => d.id === id); if (!item) return;
+            const mMain = document.getElementById('comunicados-y-fichas-main-view');
+            if (mMain) mMain.classList.add('hidden');
+            const detailView = document.getElementById('comunicados-detail-view');
+            if (detailView) detailView.classList.remove('hidden');
+            
+            const titleEl = document.getElementById('com-detail-title');
+            if (titleEl) titleEl.innerText = item.titular;
+            const idEl = document.getElementById('com-detail-id');
+            if (idEl) idEl.innerText = `ID: ${item.id}`;
+
+            const channels = {};
+            item.items.forEach(it => {
+                const canal = it.canal || "Otros";
+                if (!channels[canal]) channels[canal] = [];
+                channels[canal].push(it);
+            });
+
+            const mediaList = document.getElementById('com-detail-media-list');
+            if (mediaList) {
+                mediaList.innerHTML = Object.entries(channels)
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .map(([canal, items]) => {
+                        items.sort((a, b) => {
+                            const dateA = new Date(a._date || 0), dateB = new Date(b._date || 0);
+                            if (dateA.getTime() !== dateB.getTime()) return dateA.getTime() - dateB.getTime();
+                            return (a.medio || "").localeCompare(b.medio || "");
+                        });
+
+                        return `
+                        <div class="mb-4">
+                            <h4 class="text-[10px] font-bold text-secondary uppercase mb-2 border-b border-outline-variant pb-1 flex justify-between">
+                                <span>${canal}</span>
+                                <span class="bg-secondary/10 px-2 rounded-full">${formatNumberWithCommas(items.length)}</span>
+                            </h4>
+                            <div class="space-y-1">
+                                ${items.map(it => {
+                                    const link = it['página'] || it['pagina'] || '';
+                                    const href = getHref(link);
+                                    const medioContent = href ? `<a href="${href}" target="_blank" class="font-bold text-primary hover:underline">${it.medio}</a>` : `<span class="font-bold text-primary">${it.medio}</span>`;
+                                    return `
+                                    <div class="bg-surface-container-low p-2 rounded-lg border border-outline-variant/30 flex justify-between items-center text-[10px]">
+                                        ${medioContent}
+                                        <span class="text-[9px] text-on-surface-variant italic">${formatDate(it._date)}</span>
+                                    </div>
+                                `}).join('')}
+                            </div>
+                        </div>
+                    `;
+                    }).join('');
+            }
+        }
+
+        function closeComDetail() {
+            const mMain = document.getElementById('comunicados-y-fichas-main-view');
+            if (mMain) mMain.classList.remove('hidden');
+            const detailView = document.getElementById('comunicados-detail-view');
+            if (detailView) detailView.classList.add('hidden');
+        }
+
+        function renderPaginationControls(totalItems) {
+            const pagContainer = document.getElementById('pagination-container'); if (!pagContainer) return;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            if (totalPages <= 1) { pagContainer.innerHTML = `<span>${formatNumberWithCommas(totalItems)} comunicados</span>`; return; }
+            pagContainer.innerHTML = `<div class="flex gap-2"><button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-2 py-1 border rounded">Anterior</button><button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="px-2 py-1 border rounded">Siguiente</button></div><span>Pág. ${currentPage} de ${totalPages}</span>`;
+        }
+
+        function changePage(page) { currentPage = page; applyFilters(); }
+        function changeItemsPerPage() { itemsPerPage = parseInt(document.getElementById('items-per-page').value); currentPage = 1; applyFilters(); }
+
+        function renderFichasTable(data) {
+            const list = document.getElementById('titulares-list');
+            if (!list) return;
+            const searchInput = document.getElementById('fichas-search');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+            const dataToUse = data || currentFilteredData || rData;
+            const uniqueIDs = {};
+            dataToUse.forEach(d => {
+                const id = d.id_emision || "N/A";
+                if (!uniqueIDs[id]) uniqueIDs[id] = { id, dependencia: d.dependencia, items: [] };
+                uniqueIDs[id].items.push(d);
+            });
+            Object.values(uniqueIDs).forEach(g => {
+                const titleCounts = {};
+                g.items.forEach(it => {
+                    if (it.titular && it.titular.trim() !== "") {
+                        const t = it.titular.trim();
+                        titleCounts[t] = (titleCounts[t] || 0) + 1;
+                    }
+                });
+                const sortedTitles = Object.entries(titleCounts).sort((a, b) => b[1] - a[1]);
+                g.titular = sortedTitles.length > 0 ? sortedTitles[0][0] : "S/T";
+            });
+            const sorted = Object.values(uniqueIDs)
+                .filter(item => (item.titular || "").toLowerCase().includes(searchTerm) || (item.id || "").toLowerCase().includes(searchTerm))
+                .sort((a, b) => b.items.length - a.items.length)
+                .slice(0, 100);
+
+            list.innerHTML = sorted.map(g => {
+                const impacts = g.items.length;
+                return `<div class="bg-surface border border-outline-variant rounded-xl p-4 shadow-sm hover:shadow-md transition-all group overflow-hidden cursor-pointer" onclick="showFichaDetail('${g.id}')">
+                <div class="flex justify-between items-start mb-2"><span class="text-[9px] font-bold bg-secondary/10 text-secondary px-2 py-0.5 rounded uppercase">${g.dependencia}</span><span class="text-[9px] font-mono text-on-surface-variant">ID: ${g.id}</span></div>
+                <h4 class="text-sm font-bold text-primary mb-4 line-clamp-2 h-10">${g.titular || "S/T"}</h4>
+                <div class="grid grid-cols-1 gap-2 text-center border-t border-outline-variant pt-3">
+                    <div><div class="text-[10px] uppercase font-bold text-on-surface-variant">Impactos totales</div><div class="text-lg font-bold text-primary">${formatNumberWithCommas(impacts)}</div></div>
+                </div>
+                <div class="mt-4 text-center text-[10px] font-bold text-primary group-hover:underline flex items-center justify-center gap-1">
+                    Ver detalle <span class="material-icons text-sm">chevron_right</span>
+                </div>
+            </div>`;
+            }).join('');
+        }
+
+        function showFichaDetail(id) {
+            const items = currentFilteredData.filter(d => d.id_emision === id);
+            if (items.length === 0) return;
+            
+            const titleCounts = {};
+            items.forEach(it => {
+                if (it.titular && it.titular.trim() !== "") {
+                    const t = it.titular.trim();
+                    titleCounts[t] = (titleCounts[t] || 0) + 1;
+                }
+            });
+            const sortedTitles = Object.entries(titleCounts).sort((a, b) => b[1] - a[1]);
+            const bestTitular = sortedTitles.length > 0 ? sortedTitles[0][0] : "Sin Titular";
+
+            const first = items[0];
+            const mMain = document.getElementById('comunicados-y-fichas-main-view');
+            if (mMain) mMain.classList.add('hidden');
+            const fDetail = document.getElementById('fichas-detail-view');
+            if (fDetail) fDetail.classList.remove('hidden');
+            
+            const tEl = document.getElementById('ficha-detail-title');
+            if (tEl) tEl.innerText = bestTitular;
+            const idEl = document.getElementById('ficha-detail-id');
+            if (idEl) idEl.innerText = `ID: ${id}`;
+            
+            const content = document.getElementById('ficha-detail-content');
+            if (content) {
+                const channels = {};
+                items.forEach(it => {
+                    const c = it.canal || "Otros";
+                    if (!channels[c]) channels[c] = [];
+                    channels[c].push(it);
+                });
+                content.innerHTML = `
+                <div class="col-span-1 space-y-4">
+                    <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">Dependencia</p>
+                        <p class="text-sm font-bold text-primary">${first.dependencia || "N/A"}</p>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">Resumen de Impacto</p>
+                        <div class="grid grid-cols-2 gap-4">
+                             <div><p class="text-[9px] text-on-surface-variant">Total Impactos</p><p class="text-lg font-bold text-primary">${formatNumberWithCommas(items.length)}</p></div>
+                             <div><p class="text-[9px] text-on-surface-variant">Canales</p><p class="text-lg font-bold text-secondary">${formatNumberWithCommas(Object.keys(channels).length)}</p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-1 lg:col-span-2">
+                    <p class="text-[10px] font-bold text-primary uppercase mb-4 border-b pb-1">Desglose de Medios por Canal</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${Object.entries(channels).sort((a, b) => a[0].localeCompare(b[0])).map(([canal, mediaItems]) => `
+                            <div class="bg-surface-container-lowest p-3 rounded-lg border border-outline-variant shadow-sm">
+                                <h5 class="text-[11px] font-bold text-primary border-b border-outline-variant pb-2 mb-2 flex justify-between">
+                                    ${canal}
+                                    <span class="bg-primary/10 text-primary px-2 rounded-full">${formatNumberWithCommas(mediaItems.length)}</span>
+                                </h5>
+                                <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                    ${formatGroupedMediaItems(mediaItems)}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            }
+        }
+
+        function closeFichaDetail() {
+            const mMain = document.getElementById('comunicados-y-fichas-main-view');
+            if (mMain) mMain.classList.remove('hidden');
+            const fDetail = document.getElementById('fichas-detail-view');
+            if (fDetail) fDetail.classList.add('hidden');
+        }
+
+        // --- Governor Specific Implementation ---
+
+        function renderGovKPIs(govData, globalData) {
+            const totalEl = document.getElementById('gov-kpi-total');
+            if (totalEl) totalEl.innerText = formatNumberWithCommas(govData.length);
+
+            const uniqueIDs = (ds) => new Set(ds.map(d => d.id_emision).filter(id => id && id !== "N/A")).size;
+            
+            const idsGov = uniqueIDs(govData);
+            const rendGov = idsGov > 0 ? (govData.length / idsGov) : 0;
+            const rendEl = document.getElementById('gov-kpi-rendimiento');
+            if (rendEl) rendEl.innerText = rendGov.toFixed(2);
+
+            const eficaciaGov = globalData.length > 0 ? ((govData.length / globalData.length) * 100).toFixed(1) : 0;
+            const eficEl = document.getElementById('gov-kpi-eficacia');
+            if (eficEl) eficEl.innerText = `${eficaciaGov}%`;
+
+            const idsGlobal = uniqueIDs(globalData), rendGlobal = idsGlobal > 0 ? (globalData.length / idsGlobal) : 0;
+            const aprovechamientoGov = rendGlobal > 0 ? (rendGov / rendGlobal).toFixed(2) : "0.00";
+            const aprovEl = document.getElementById('gov-kpi-aprovechamiento');
+            if (aprovEl) aprovEl.innerText = aprovechamientoGov;
+        }
+
+        function renderGovCharts(filtered, govData, f) {
+            // 1. Stacked Bar Chart of Organisms
+            const counts = {};
+            const validMentions = filtered.filter(d => {
+                const dep = String(d.dependencia || '').toUpperCase();
+                const org = String(d.organismo || '').toUpperCase();
+                if (dep === 'OCSAD' || org === 'OCSAD') return false;
+                
+                const orgLower = org.toLowerCase();
+                return orgLower === 'gobernador' || orgLower === 'titular';
+            });
+            
+            validMentions.forEach(d => {
+                const dep = d.dependencia || "N/A";
+                const org = d.organismo.toLowerCase() === 'gobernador' ? 'Gobernador' : 'Titular';
+                if (!counts[dep]) counts[dep] = { Gobernador: 0, Titular: 0, total: 0 };
+                counts[dep][org]++;
+                counts[dep].total++;
+            });
+            
+            const sortedDeps = Object.entries(counts)
+                .sort((a, b) => b[1].total - a[1].total)
+                .slice(0, 15);
+                
+            const labels = sortedDeps.map(x => x[0]);
+            const dataGobernador = sortedDeps.map(x => x[1].Gobernador);
+            const dataTitular = sortedDeps.map(x => x[1].Titular);
+            
+            const ctx = document.getElementById('g_gov_mentions');
+            if (ctx) {
+                if (vCharts['g_gov_mentions']) vCharts['g_gov_mentions'].destroy();
+                vCharts['g_gov_mentions'] = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Gobernador',
+                                data: dataGobernador,
+                                backgroundColor: '#611232',
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Titular',
+                                data: dataTitular,
+                                backgroundColor: '#A57F2C',
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            legend: { display: true, position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
+                            datalabels: {
+                                color: '#fff',
+                                font: { weight: 'bold', size: 10 },
+                                formatter: (v) => v > 0 ? formatChartValue(v) : ''
+                            }
+                        },
+                        scales: {
+                            x: {
+                                stacked: true,
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatChartValue(value);
+                                    }
+                                }
+                            },
+                            y: { stacked: true }
+                        }
+                    }
+                });
+            }
+            
+            // 2. Treemap of Themes (Governor only)
+            const themeCounts = {};
+            govData.forEach(d => {
+                const theme = d.tema || "Sin Tema";
+                themeCounts[theme] = (themeCounts[theme] || 0) + 1;
+            });
+            
+            const treemapData = Object.entries(themeCounts).map(([label, value]) => ({
+                label,
+                value
+            }));
+            
+            renderTreemap('treemap-container', treemapData);
+        }
+
+        function computeTreemap(data, x, y, w, h) {
+            if (data.length === 0) return [];
+            if (data.length === 1) {
+                return [{ ...data[0], x, y, w, h }];
+            }
+            const total = data.reduce((sum, item) => sum + item.value, 0);
+            if (total === 0) {
+                const count = data.length;
+                const result = [];
+                for (let i = 0; i < count; i++) {
+                    if (w > h) {
+                        result.push({ ...data[i], x: x + (w / count) * i, y, w: w / count, h });
+                    } else {
+                        result.push({ ...data[i], x, y: y + (h / count) * i, w, h: h / count });
+                    }
+                }
+                return result;
+            }
+            
+            let leftSum = 0;
+            let splitIdx = 0;
+            let minDiff = Infinity;
+            for (let i = 0; i < data.length - 1; i++) {
+                leftSum += data[i].value;
+                const rightSum = total - leftSum;
+                const diff = Math.abs(leftSum - rightSum);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    splitIdx = i;
+                }
+            }
+            
+            const leftData = data.slice(0, splitIdx + 1);
+            const rightData = data.slice(splitIdx + 1);
+            const leftTotal = leftData.reduce((sum, item) => sum + item.value, 0);
+            const ratio = leftTotal / total;
+            
+            const result = [];
+            if (w > h) {
+                const wLeft = w * ratio;
+                result.push(...computeTreemap(leftData, x, y, wLeft, h));
+                result.push(...computeTreemap(rightData, x + wLeft, y, w - wLeft, h));
+            } else {
+                const hTop = h * ratio;
+                result.push(...computeTreemap(leftData, x, y, w, hTop));
+                result.push(...computeTreemap(rightData, x, y + hTop, w, h - hTop));
+            }
+            return result;
+        }
+
+        function renderTreemap(containerId, data) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = "";
+            
+            if (data.length === 0) {
+                container.innerHTML = `<div class="flex items-center justify-center h-full text-on-surface-variant font-bold text-xs">No hay datos disponibles</div>`;
+                return;
+            }
+            
+            const sortedData = [...data].sort((a, b) => b.value - a.value).slice(0, 10);
+            const total = data.reduce((sum, item) => sum + item.value, 0);
+            
+            const treemapData = sortedData.map(d => ({
+                label: d.label,
+                value: d.value,
+                percentage: Math.round((d.value / total) * 100)
+            }));
+            
+            const rects = computeTreemap(treemapData, 0, 0, 100, 100);
+            const colors = ['#FBC02D', '#D50000', '#388E3C', '#0091EA', '#8E24AA', '#795548', '#B71C1C', '#2E7D32', '#00838F', '#611232'];
+            
+            rects.forEach((rect, i) => {
+                const div = document.createElement('div');
+                div.className = "absolute flex flex-col justify-center items-center text-center p-1 text-white font-bold border border-white hover:opacity-90 transition-opacity select-none cursor-pointer";
+                div.style.left = `${rect.x}%`;
+                div.style.top = `${rect.y}%`;
+                div.style.width = `${rect.w}%`;
+                div.style.height = `${rect.h}%`;
+                div.style.backgroundColor = colors[i
+                 % colors.length];
+                div.title = `${rect.label}: ${formatNumberWithCommas(rect.value)} (${rect.percentage}%)`;
+                
+                div.innerHTML = `
+                    <span class="text-[9px] md:text-[11px] leading-tight truncate max-w-full px-1">${rect.label}</span>
+                    <span class="text-[10px] md:text-xs mt-0.5">${rect.percentage}%</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderGovFichasTable(data) {
+            const list = document.getElementById('gov-titulares-list');
+            if (!list) return;
+            const searchInput = document.getElementById('gov-fichas-search');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+            
+            const dataToUse = data || currentGovFilteredData || [];
+            const uniqueIDs = {};
+            dataToUse.forEach(d => {
+                const id = d.id_emision || "N/A";
+                if (!uniqueIDs[id]) uniqueIDs[id] = { id, dependencia: d.dependencia, items: [] };
+                uniqueIDs[id].items.push(d);
+            });
+            Object.values(uniqueIDs).forEach(g => {
+                const titleCounts = {};
+                g.items.forEach(it => {
+                    if (it.titular && it.titular.trim() !== "") {
+                        const t = it.titular.trim();
+                        titleCounts[t] = (titleCounts[t] || 0) + 1;
+                    }
+                });
+                const sortedTitles = Object.entries(titleCounts).sort((a, b) => b[1] - a[1]);
+                g.titular = sortedTitles.length > 0 ? sortedTitles[0][0] : "S/T";
+            });
+            
+            const sorted = Object.values(uniqueIDs)
+                .filter(item => (item.titular || "").toLowerCase().includes(searchTerm) || (item.id || "").toLowerCase().includes(searchTerm))
+                .sort((a, b) => b.items.length - a.items.length)
+                .slice(0, 100);
+
+            list.innerHTML = sorted.map(g => {
+                const impacts = formatNumberWithCommas(g.items.length);
+                return `<div class="bg-surface border border-outline-variant rounded-xl p-4 shadow-sm hover:shadow-md transition-all group overflow-hidden cursor-pointer" onclick="showGovFichaDetail('${g.id}')">
+                <div class="flex justify-between items-start mb-2"><span class="text-[9px] font-bold bg-secondary/10 text-secondary px-2 py-0.5 rounded uppercase">${g.dependencia}</span><span class="text-[9px] font-mono text-on-surface-variant">ID: ${g.id}</span></div>
+                <h4 class="text-sm font-bold text-primary mb-4 line-clamp-2 h-10">${g.titular || "S/T"}</h4>
+                <div class="grid grid-cols-1 gap-2 text-center border-t border-outline-variant pt-3">
+                    <div><div class="text-[10px] uppercase font-bold text-on-surface-variant">Impactos totales</div><div class="text-lg font-bold text-primary">${impacts}</div></div>
+                </div>
+                <div class="mt-4 text-center text-[10px] font-bold text-primary group-hover:underline flex items-center justify-center gap-1">
+                    Ver detalle <span class="material-icons text-sm">chevron_right</span>
+                </div>
+            </div>`;
+            }).join('');
+        }
+
+        function showGovFichaDetail(id) {
+            const items = currentGovFilteredData.filter(d => d.id_emision === id);
+            if (items.length === 0) return;
+            
+            const titleCounts = {};
+            items.forEach(it => {
+                if (it.titular && it.titular.trim() !== "") {
+                    const t = it.titular.trim();
+                    titleCounts[t] = (titleCounts[t] || 0) + 1;
+                }
+            });
+            const sortedTitles = Object.entries(titleCounts).sort((a, b) => b[1] - a[1]);
+            const bestTitular = sortedTitles.length > 0 ? sortedTitles[0][0] : "Sin Titular";
+
+            const first = items[0];
+            
+            const kpiContainer = document.getElementById('gov-kpi-container');
+            if (kpiContainer) kpiContainer.classList.add('hidden');
+            const mainContainer = document.getElementById('gov-main-views-container');
+            if (mainContainer) mainContainer.classList.add('hidden');
+            const detailView = document.getElementById('gov-fichas-detail-view');
+            if (detailView) detailView.classList.remove('hidden');
+            
+            const tEl = document.getElementById('gov-ficha-detail-title');
+            if (tEl) tEl.innerText = bestTitular;
+            const idEl = document.getElementById('gov-ficha-detail-id');
+            if (idEl) idEl.innerText = `ID: ${id}`;
+            
+            const content = document.getElementById('gov-ficha-detail-content');
+            if (content) {
+                const channels = {};
+                items.forEach(it => {
+                    const c = it.canal || "Otros";
+                    if (!channels[c]) channels[c] = [];
+                    channels[c].push(it);
+                });
+                
+                content.innerHTML = `
+                <div class="col-span-1 space-y-4">
+                    <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">Dependencia</p>
+                        <p class="text-sm font-bold text-primary">${first.dependencia || "N/A"}</p>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">Resumen de Impacto</p>
+                        <div class="grid grid-cols-2 gap-4">
+                             <div><p class="text-[9px] text-on-surface-variant">Total Impactos</p><p class="text-lg font-bold text-primary">${formatNumberWithCommas(items.length)}</p></div>
+                             <div><p class="text-[9px] text-on-surface-variant">Canales</p><p class="text-lg font-bold text-secondary">${formatNumberWithCommas(Object.keys(channels).length)}</p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-1 lg:col-span-2">
+                    <p class="text-[10px] font-bold text-primary uppercase mb-4 border-b pb-1">Desglose de Medios por Canal</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${Object.entries(channels).sort((a, b) => a[0].localeCompare(b[0])).map(([canal, mediaItems]) => `
+                            <div class="bg-surface-container-lowest p-3 rounded-lg border border-outline-variant shadow-sm">
+                                <h5 class="text-[11px] font-bold text-primary border-b border-outline-variant pb-2 mb-2 flex justify-between">
+                                    ${canal}
+                                    <span class="bg-primary/10 text-primary px-2 rounded-full">${formatNumberWithCommas(mediaItems.length)}</span>
+                                </h5>
+                                <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                    ${formatGroupedMediaItems(mediaItems)}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                `;
+            }
+        }
+
+        function closeGovFichaDetail() {
+            const kpiContainer = document.getElementById('gov-kpi-container');
+            if (kpiContainer) kpiContainer.classList.remove('hidden');
+            const mainContainer = document.getElementById('gov-main-views-container');
+            if (mainContainer) mainContainer.classList.remove('hidden');
+            const detailView = document.getElementById('gov-fichas-detail-view');
+            if (detailView) detailView.classList.add('hidden');
+        }
+
+        async function genPDF() {
+            const overlay = document.getElementById('loading-overlay'); overlay.classList.remove('hidden'); overlay.querySelector('p').innerText = "Generando reporte PDF...";
+            const element = document.getElementById('main-content'), opt = { margin: 0.5, filename: `Reporte-${new Date().getTime()}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+            try { await html2pdf().set(opt).from(element).save(); } catch (err) { console.error(err); } finally { overlay.classList.add('hidden'); }
+        }
+
+        const searchInputEl = document.getElementById('table-search');
+        if (searchInputEl) {
+            searchInputEl.addEventListener('input', () => { currentPage = 1; applyFilters(); });
+        }
+        
+        Chart.register(ChartDataLabels);
+        window.onload = start;
+    </script>
+</body>
+
+</html>
