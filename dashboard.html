@@ -148,13 +148,7 @@
     <header
         class="flex justify-between items-center w-full px-4 lg:px-gutter h-16 fixed top-0 z-50 bg-surface shadow-sm border-b border-outline-variant">
         <div class="flex items-center gap-3 lg:gap-4 overflow-hidden">
-            <!-- Toggle Button -->
-            <button
-                class="flex items-center gap-2 p-2 hover:bg-surface-container-low rounded-lg transition-colors text-primary font-bold text-xs"
-                id="sidebar-toggle" onclick="toggleSidebar()">
-                <span class="material-icons">menu</span>
-                <span class="hidden sm:inline">Filtros</span>
-            </button>
+            
             <span class="text-lg lg:text-h3 font-bold text-primary whitespace-nowrap">Dashboard de Comunicados</span>
             <span id="dash-subtitle"
                 class="text-[10px] text-secondary font-bold truncate max-w-[200px] hidden sm:block"></span>
@@ -199,104 +193,79 @@
         <p class="text-primary font-bold text-sm">Cargando datos del dashboard...</p>
     </div>
     <div class="flex pt-16 h-screen overflow-hidden">
-        <!-- Sidebar: Collapsible Filters -->
-        <aside
-            class="w-64 flex-shrink-0 bg-surface-container-low border-r border-outline-variant flex flex-col z-40 fixed lg:static h-[calc(100vh-64px)] overflow-hidden"
-            id="sidebar">
-            <div class="p-4 lg:p-6 border-b border-outline-variant bg-surface">
-                <h3 class="text-sm lg:text-base font-bold text-primary flex items-center gap-2">
-                    <span class="material-icons">filter_list</span> Panel de Filtros
-                </h3>
-            </div>
-            <div class="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6 custom-scrollbar">
-                <!-- Analytics Controls -->
-                <div class="bg-surface-container-low p-3 rounded-xl border border-outline-variant space-y-3">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-primary uppercase">Elegir Rango / Top</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="an-x" value="10" min="1"
-                                class="w-16 text-xs rounded-lg border-outline-variant py-1.5 focus:ring-primary focus:border-primary"
-                                onchange="updateFilters()">
-                            <select id="an-mode"
-                                class="flex-1 text-xs rounded-lg border-outline-variant py-1.5 focus:ring-primary focus:border-primary"
-                                onchange="updateFilters()">
-                                <option value="top">Los "X" más</option>
-                                <option value="bottom">Los "X" menos</option>
-                            </select>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div id="f-cont" class="space-y-6">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-primary uppercase">Estatus</label>
-                        <select
-                            class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 focus:ring-primary focus:border-primary"
-                            id="sel-Estatus" onchange="updateFilters()"></select>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-primary uppercase">Periodo</label>
-                        <select
-                            class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 focus:ring-primary focus:border-primary"
-                            id="sel-Fecha-Range" onchange="handleDateRangeChange()">
-                            <option value="Todos">Todo el histórico</option>
-                            <option value="Hoy">Hoy</option>
-                            <option value="Ayer">Ayer</option>
-                            <option value="Semana">Últimos 7 días</option>
-                            <option value="MesActual">Este mes</option>
-                            <option value="MesAnterior">Mes anterior</option>
-                            <option value="Custom">Rango personalizado</option>
-                        </select>
-                    </div>
-                    <div id="custom-date-cont" class="hidden grid grid-cols-2 gap-2">
-                        <div class="space-y-1">
-                            <label class="text-[8px] font-bold text-on-surface-variant uppercase">Inicio</label>
-                            <input type="date" id="date-start"
-                                class="w-full text-[10px] rounded border-outline-variant py-1 focus:ring-primary"
-                                onchange="updateFilters()">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[8px] font-bold text-on-surface-variant uppercase">Fin</label>
-                            <input type="date" id="date-end"
-                                class="w-full text-[10px] rounded border-outline-variant py-1 focus:ring-primary"
-                                onchange="updateFilters()">
-                        </div>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-primary uppercase">Dependencia</label>
-                        <select
-                            class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 focus:ring-primary focus:border-primary min-h-[100px]"
-                            id="sel-Dependencia" multiple onchange="updateFilters()"></select>
-                        <div class="flex items-center gap-2 mt-2">
-                            <input type="checkbox" id="chk-titular-organismo" class="rounded text-primary focus:ring-primary h-4 w-4"
-                                onchange="updateFilters()">
-                            <label for="chk-titular-organismo" class="text-[10px] font-bold text-on-surface-variant">Solo Titular en Organismo</label>
-                        </div>
-                    </div>
-                    <div class="relative space-y-1">
-                        <label class="text-[10px] font-bold text-primary uppercase">Buscar por ID</label>
-                        <div class="relative">
-                            <input type="text"
-                                class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 pr-8 focus:ring-primary focus:border-primary"
-                                id="sel-ID_Emision" placeholder="Buscar o elegir ID..." oninput="updateFilters()" onfocus="showIdDropdown()" onblur="hideIdDropdown()" autocomplete="off">
-                            <span class="material-icons absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none">arrow_drop_down</span>
-                        </div>
-                        <div id="sel-ID_Emision-dropdown" class="hidden absolute left-0 right-0 z-50 max-h-60 overflow-y-auto bg-white border border-outline-variant rounded-lg shadow-lg mt-1 text-xs custom-scrollbar">
-                        </div>
-                    </div>
-                    <div id="f-dynamic-cont" class="space-y-6"></div>
-                </div>
-
-                <button onclick="location.reload()"
-                    class="w-full py-2 border border-outline-variant rounded-lg text-[10px] font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors">
-                    Restablecer Filtros
-                </button>
-            </div>
-        </aside>
+        <!-- Estado de filtros secundarios (se controlan con clic en gráficas y chips) -->
+        <aside id="sidebar" style="display:none" aria-hidden="true"></aside>
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto bg-background p-4 lg:p-gutter custom-scrollbar transition-all duration-300"
             id="main-content">
+            <!-- Barra de filtros -->
+            <section id="filter-bar" class="sticky top-0 z-30 mb-4 bg-surface border border-outline-variant rounded-xl shadow-sm p-3 space-y-2">
+                <div class="flex flex-wrap items-end gap-x-5 gap-y-3">
+                    <div class="space-y-1">
+                        <div class="text-[10px] font-bold text-primary uppercase">Periodo</div>
+                        <div class="flex flex-wrap gap-1" id="period-btns">
+                            <button data-p="Todos" onclick="setPeriod('Todos')" class="pbtn">Todo</button>
+                            <button data-p="Hoy" onclick="setPeriod('Hoy')" class="pbtn">Hoy</button>
+                            <button data-p="Semana" onclick="setPeriod('Semana')" class="pbtn">7 días</button>
+                            <button data-p="MesActual" onclick="setPeriod('MesActual')" class="pbtn">Este mes</button>
+                            <button data-p="MesAnterior" onclick="setPeriod('MesAnterior')" class="pbtn">Mes anterior</button>
+                            <button data-p="Custom" onclick="setPeriod('Custom')" class="pbtn">Personalizado</button>
+                        </div>
+                        <select id="sel-Fecha-Range" class="hidden" onchange="handleDateRangeChange()">
+                            <option value="Todos">Todo</option><option value="Hoy">Hoy</option><option value="Ayer">Ayer</option><option value="Semana">Semana</option><option value="MesActual">Mes</option><option value="MesAnterior">Mes anterior</option><option value="Custom">Custom</option>
+                        </select>
+                    </div>
+                    <div id="custom-date-cont" class="hidden flex gap-2 items-end">
+                        <label class="text-[10px] font-bold text-on-surface-variant uppercase">Inicio <input type="date" id="date-start" class="block text-[11px] rounded border-outline-variant py-1" onchange="updateFilters()"></label>
+                        <label class="text-[10px] font-bold text-on-surface-variant uppercase">Fin <input type="date" id="date-end" class="block text-[11px] rounded border-outline-variant py-1" onchange="updateFilters()"></label>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="text-[10px] font-bold text-primary uppercase">Estatus</div>
+                        <select id="sel-Estatus" class="text-xs rounded-lg border-outline-variant bg-white py-1.5" onchange="updateFilters()"></select>
+                    </div>
+                    <div class="space-y-1 relative">
+                        <div class="text-[10px] font-bold text-primary uppercase">Dependencia</div>
+                        <details id="dep-details" class="relative">
+                            <summary id="dep-summary" class="list-none cursor-pointer text-xs bg-white border border-outline-variant rounded-lg px-3 py-1.5 min-w-[190px] flex justify-between items-center gap-2"><span>Todas</span><span class="material-icons text-sm">arrow_drop_down</span></summary>
+                            <div class="absolute left-0 mt-1 w-64 bg-white border border-outline-variant rounded-lg shadow-lg p-2 z-50 space-y-2">
+                                <input type="text" id="dep-search" placeholder="Buscar dependencia..." class="w-full text-xs rounded border-outline-variant py-1" oninput="applyDepSearch()">
+                                <select id="sel-Dependencia" multiple size="8" class="w-full text-xs rounded border-outline-variant" onchange="updateFilters()"></select>
+                                <p class="text-[10px] text-on-surface-variant">Ctrl/Cmd + clic para elegir varias</p>
+                            </div>
+                        </details>
+                    </div>
+                    <button id="btn-gob" onclick="toggleGobernador()" class="pbtn h-[34px] flex items-center gap-1"><span class="material-icons text-sm">person</span>Solo Gobernador</button>
+                    <input type="checkbox" id="chk-titular-organismo" class="hidden" onchange="updateFilters()">
+                    <button id="btn-titular" onclick="toggleTitular()" class="pbtn h-[34px] flex items-center gap-1"><span class="material-icons text-sm">badge</span>Solo Titular</button>
+                    <div class="space-y-1 ml-auto">
+                        <div class="text-[10px] font-bold text-on-surface-variant uppercase">Gráficas: mostrar</div>
+                        <div class="flex gap-1">
+                            <select id="an-mode" class="text-xs rounded-lg border-outline-variant py-1" onchange="updateFilters()"><option value="top">Top</option><option value="bottom">Últimos</option></select>
+                            <input type="number" id="an-x" value="10" min="1" class="w-14 text-xs rounded-lg border-outline-variant py-1" onchange="updateFilters()">
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 items-end border-t border-outline-variant pt-3">
+                    <div class="relative space-y-1 col-span-2 lg:col-span-1">
+                        <label class="text-[10px] font-bold text-primary uppercase">Buscar por ID</label>
+                        <div class="relative">
+                            <input type="text" class="w-full text-xs rounded-lg border-outline-variant bg-white py-1.5 pr-8 focus:ring-primary focus:border-primary" id="sel-ID_Emision" placeholder="Buscar o elegir ID..." oninput="updateFilters()" onfocus="showIdDropdown()" onblur="hideIdDropdown()" autocomplete="off">
+                            <span class="material-icons absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none">arrow_drop_down</span>
+                        </div>
+                        <div id="sel-ID_Emision-dropdown" class="hidden absolute left-0 right-0 z-50 max-h-60 overflow-y-auto bg-white border border-outline-variant rounded-lg shadow-lg mt-1 text-xs custom-scrollbar"></div>
+                    </div>
+                    <div id="f-dynamic-cont" class="contents"></div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 min-h-[22px]">
+                    <span class="text-[10px] text-on-surface-variant">Tip: haz clic en una barra o sector de las gráficas para filtrar.</span>
+                    <div id="active-chips" class="flex flex-wrap items-center gap-2"></div>
+                </div>
+            </section>
+            <style>
+                .pbtn{font-size:11px;font-weight:700;padding:5px 10px;border:1px solid #d8c2c6;border-radius:999px;background:#fff;color:#611232}
+                .pbtn:hover{background:#f6eef0}.pbtn.on{background:#611232;color:#fff;border-color:#611232}
+                #dep-details summary::-webkit-details-marker{display:none}
+            </style>
             <!-- Global KPIs -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 mb-6 lg:mb-gutter" id="kpi-container">
                 <div
@@ -425,6 +394,7 @@
                                 <div class="flex items-center gap-1">
                                     <span class="w-3 h-3 bg-primary rounded"></span> Reproducción en medios
                                 </div>
+                                <span class="font-normal text-on-surface-variant">· cada lado con su propia escala</span>
                             </div>
                         </div>
                         <div class="h-[300px] lg:h-[400px] elastic">
@@ -789,6 +759,65 @@
         let currentGovFilteredData = []; // Governor filtered data
         let redrawTimeout;
 
+        const COL_MAP = { dependencia: 'Dependencia', medio: 'Medio', municipio: 'Municipio', organismo: 'Organismo', 'género': 'Género', genero: 'Género', estatus: 'Estatus' };
+        function setFilterFromChart(col, val) {
+            const el = document.getElementById('sel-' + col); if (!el || val == null) return;
+            if (col === 'Dependencia') {
+                const only = Array.from(el.selectedOptions).map(o => o.value);
+                const clear = only.length === 1 && only[0] === val;
+                Array.from(el.options).forEach(o => o.selected = !clear && o.value === val);
+            } else { el.value = (el.value === val) ? 'Todos' : val; }
+            updateFilters();
+        }
+        function chartClick(col) { return (ev, els, ch) => { if (els.length) setFilterFromChart(col, ch.data.labels[els[0].index]); }; }
+        function chartHover(col) { return (ev, els) => { ev.native.target.style.cursor = els.length ? 'pointer' : 'default'; }; }
+        function removeChip(col, val) {
+            if (col === 'ID') { document.getElementById('sel-ID_Emision').value = ''; updateFilters(); return; }
+            if (col === 'Titular') { document.getElementById('chk-titular-organismo').checked = false; updateFilters(); return; }
+            const el = document.getElementById('sel-' + col); if (!el) return;
+            if (col === 'Dependencia') Array.from(el.options).forEach(o => { if (o.value === val) o.selected = false; });
+            else el.value = 'Todos';
+            updateFilters();
+        }
+        function toggleTitular() { const c = document.getElementById('chk-titular-organismo'); c.checked = !c.checked; updateFilters(); }
+        function setPeriod(v) { document.getElementById('sel-Fecha-Range').value = v; handleDateRangeChange(); }
+        function resetFilters() {
+            ['Estatus', 'Canal', 'Medio', 'Municipio', 'Organismo', 'Género'].forEach(c => { const e = document.getElementById('sel-' + c); if (e) e.value = 'Todos'; });
+            const d = document.getElementById('sel-Dependencia'); if (d) Array.from(d.options).forEach(o => o.selected = false);
+            document.getElementById('chk-titular-organismo').checked = false;
+            document.getElementById('sel-ID_Emision').value = '';
+            document.getElementById('an-x').value = 10; document.getElementById('an-mode').value = 'top';
+            document.getElementById('dep-search').value = '';
+            setPeriod('Todos');
+        }
+        function toggleGobernador() {
+            const el = document.getElementById('sel-Dependencia');
+            const o = Array.from(el.options).find(o => o.value.toLowerCase() === 'gobernador');
+            if (o) setFilterFromChart('Dependencia', o.value);
+        }
+        function applyDepSearch() {
+            const q = (document.getElementById('dep-search').value || '').toLowerCase();
+            Array.from(document.getElementById('sel-Dependencia').options).forEach(o => { o.hidden = !!q && !o.text.toLowerCase().includes(q); });
+        }
+        function renderChips(f) {
+            const box = document.getElementById('active-chips'); if (!box) return;
+            const items = [];
+            ['Canal', 'Medio', 'Municipio', 'Organismo', 'Género'].forEach(c => { if (f[c] && f[c] !== 'Todos') items.push([c, f[c]]); });
+            (f.Dependencia || []).forEach(v => items.push(['Dependencia', v]));
+            if (f.ID_Emision && f.ID_Emision !== 'Todos') items.push(['ID', f.ID_Emision]);
+            if (f.TitularOnly) items.push(['Titular', 'Solo Titular en Organismo']);
+            const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+            box.innerHTML = items.map(([c, v]) => `<span class="inline-flex items-center gap-1 bg-secondary/10 text-primary text-[11px] rounded-full pl-3 pr-1 py-0.5">${c}: <b>${esc(v)}</b><button class="material-icons text-sm hover:text-secondary" data-c="${esc(c)}" data-v="${encodeURIComponent(v)}" onclick="removeChip(this.dataset.c, decodeURIComponent(this.dataset.v))">close</button></span>`).join('')
+                + (items.length || f.Estatus !== 'Todos' || f.FechaRange !== 'Todos' ? '<button class="text-[11px] font-bold text-secondary underline" onclick="resetFilters()">Limpiar todo</button>' : '');
+            const dep = f.Dependencia || [];
+            document.querySelector('#dep-summary span').textContent = dep.length === 0 ? 'Todas' : dep.length === 1 ? dep[0] : dep.length + ' seleccionadas';
+            document.querySelectorAll('#period-btns .pbtn').forEach(b => b.classList.toggle('on', b.dataset.p === f.FechaRange));
+            document.getElementById('btn-titular').classList.toggle('on', !!f.TitularOnly);
+            document.getElementById('btn-gob').classList.toggle('on', dep.length === 1 && dep[0].toLowerCase() === 'gobernador');
+            applyDepSearch();
+        }
+        document.addEventListener('click', e => { const d = document.getElementById('dep-details'); if (d && d.open && !d.contains(e.target)) d.open = false; });
+
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('sidebar-hidden');
@@ -943,7 +972,7 @@
                     }
                     if (f.FechaStart && d._date < f.FechaStart) return false;
                     if (f.FechaEnd && d._date > f.FechaEnd) return false;
-                    if (f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
+                    if (col !== "Estatus" && f.Estatus !== "Todos" && d.estatus !== f.Estatus) return false;
                     
                     for (let otherCol of vColsHierarchy) {
                         if (otherCol === col) continue;
@@ -1058,6 +1087,7 @@
 
         function applyFilters() {
             const f = getCurrentFilterState();
+            renderChips(f);
             const globalData = rData.filter(d => {
                 if (f.OficialOnly) {
                     const g = String(d['género'] || d['genero'] || '').toLowerCase();
@@ -1224,6 +1254,7 @@
             vCharts['g_medios_prod'] = new Chart(ctx, {
                 type: 'bar', data: { labels, datasets: [{ label: 'Impactos', data: values, backgroundColor: '#611232', borderRadius: 4 }] },
                 options: {
+                    onClick: chartClick('Medio'), onHover: chartHover(),
                     indexAxis: 'y', maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
@@ -1263,42 +1294,67 @@
             const labels = finalData.map(x => x[0]);
             const maxIds = Math.max(...finalData.map(x => x[1].ids.size), 1);
             const maxMentions = Math.max(...finalData.map(x => x[1].mentions), 1);
-            
-            const maxVal = Math.max(maxIds, maxMentions);
-            const gap = maxVal * 0.45;
-            const padding = maxVal * 0.1;
 
-            const floatingIdsData = finalData.map(x => ({ x: [-x[1].ids.size - gap, -gap], y: x[0], realValue: x[1].ids.size }));
-            const floatingMentionsData = finalData.map(x => ({ x: [gap, x[1].mentions + gap], y: x[0], realValue: x[1].mentions }));
+            // Cada lado se normaliza con su propia escala para que ambos se lean bien
+            const SPAN = 100, GAP = 34, PAD = 22;
+            const len = (v, max) => v > 0 ? Math.max(v / max * SPAN, 1.5) : 0;
+            const leftData = finalData.map(x => ({ x: [-GAP - len(x[1].ids.size, maxIds), -GAP], y: x[0], realValue: x[1].ids.size }));
+            const rightData = finalData.map(x => ({ x: [GAP, GAP + len(x[1].mentions, maxMentions)], y: x[0], realValue: x[1].mentions }));
+            const common = { borderRadius: 6, borderSkipped: false, grouped: false, barPercentage: 0.62, categoryPercentage: 0.95 };
 
             if (vCharts['g_butterfly']) vCharts['g_butterfly'].destroy();
             vCharts['g_butterfly'] = new Chart(ctx, {
                 type: 'bar',
-                data: { labels, datasets: [{ label: 'Comunicados', data: floatingIdsData, backgroundColor: '#A57F2C', borderRadius: 2 }, { label: 'Impactos', data: floatingMentionsData, backgroundColor: '#611232', borderRadius: 2 }] },
+                data: { labels, datasets: [
+                    { label: 'Comunicados', data: leftData, backgroundColor: '#A57F2C', ...common },
+                    { label: 'Reproducción en medios', data: rightData, backgroundColor: '#611232', ...common }
+                ] },
                 options: {
+                    onClick: chartClick('Dependencia'), onHover: chartHover(),
                     indexAxis: 'y', maintainAspectRatio: false,
+                    layout: { padding: { top: 4, bottom: 4 } },
                     plugins: {
                         legend: { display: false },
-                        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${formatChartValue(c.raw.realValue)}` } },
+                        tooltip: { callbacks: {
+                            label: (c) => `${c.dataset.label}: ${c.raw.realValue.toLocaleString('es-MX')}`,
+                            afterBody: (items) => { const i = items[0].dataIndex, f = finalData[i][1]; return f.ids.size ? `Reproducciones por comunicado: ${(f.mentions / f.ids.size).toFixed(1)}` : ''; }
+                        } },
                         datalabels: {
-                            color: '#444', anchor: (c) => c.datasetIndex === 0 ? 'start' : 'end', align: (c) => c.datasetIndex === 0 ? 'start' : 'end', offset: 6,
-                            font: { weight: 'bold', size: 10 }, 
-                            formatter: (v) => {
-                                const val = Math.abs(v.realValue);
-                                return val > 0 ? formatChartValue(val) : '';
-                            }
+                            color: (c) => c.datasetIndex === 0 ? '#7a5c1a' : '#611232',
+                            anchor: (c) => c.datasetIndex === 0 ? 'start' : 'end', align: (c) => c.datasetIndex === 0 ? 'start' : 'end', offset: 6,
+                            font: { weight: 'bold', size: 11 },
+                            formatter: (v) => v.realValue > 0 ? formatChartValue(v.realValue) : ''
                         }
                     },
                     scales: {
-                        x: { min: -maxVal - gap - padding, max: maxVal + gap + padding, ticks: { display: false }, grid: { display: false }, border: { display: false } },
+                        x: { min: -GAP - SPAN - PAD, max: GAP + SPAN + PAD, ticks: { display: false }, grid: { display: false }, border: { display: false } },
                         y: { ticks: { display: false }, grid: { display: false }, border: { display: false } }
                     }
                 },
                 plugins: [{
+                    id: 'butterflyTracks',
+                    beforeDatasetsDraw: (chart) => {
+                        const { ctx, scales: { x } } = chart; const meta = chart.getDatasetMeta(0);
+                        ctx.save(); ctx.fillStyle = 'rgba(97,18,50,0.06)';
+                        meta.data.forEach(bar => {
+                            const h = bar.height, y = bar.y - h / 2;
+                            [[-GAP - SPAN, -GAP], [GAP, GAP + SPAN]].forEach(([p, q]) => {
+                                const x1 = x.getPixelForValue(p), x2 = x.getPixelForValue(q);
+                                ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x1, y, x2 - x1, h, 6); else ctx.rect(x1, y, x2 - x1, h); ctx.fill();
+                            });
+                        });
+                        ctx.restore();
+                    }
+                }, {
                     id: 'centerLabels',
                     afterDraw: (chart) => {
-                        const { ctx, scales: { x, y } } = chart; ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#611232'; ctx.font = 'bold 11px sans-serif';
-                        y.getTicks().forEach((tick, i) => { const yPos = y.getPixelForTick(i); const xPos = x.getPixelForValue(0); ctx.fillText(labels[i], xPos, yPos); }); ctx.restore();
+                        const { ctx, scales: { x, y } } = chart; ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#611232'; ctx.font = '700 12px Montserrat, sans-serif';
+                        const maxW = x.getPixelForValue(GAP) - x.getPixelForValue(-GAP) - 8;
+                        y.getTicks().forEach((tick, i) => {
+                            let t = String(labels[i]); while (t.length > 3 && ctx.measureText(t).width > maxW) t = t.slice(0, -2) + '…';
+                            ctx.fillText(t, x.getPixelForValue(0), y.getPixelForTick(i));
+                        });
+                        ctx.restore();
                     }
                 }]
             });
@@ -1325,6 +1381,7 @@
                 type: 'bar',
                 data: { labels, datasets: [{ label: 'Elementos', data: values, backgroundColor: '#611232', borderRadius: 4 }] },
                 options: {
+                    onClick: chartClick('Dependencia'), onHover: chartHover(),
                     maintainAspectRatio: false,
                     indexAxis: 'y',
                     plugins: {
@@ -1379,6 +1436,8 @@
             vCharts[id] = new Chart(ctx, {
                 type: chartType, data: { labels, datasets },
                 options: {
+                    onClick: COL_MAP[String(field).toLowerCase()] ? chartClick(COL_MAP[String(field).toLowerCase()]) : undefined,
+                    onHover: COL_MAP[String(field).toLowerCase()] ? chartHover() : undefined,
                     maintainAspectRatio: false, indexAxis: 'y',
                     plugins: {
                         legend: { display: type === 'bar_stacked' || chartType === 'pie', position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
@@ -1387,7 +1446,7 @@
                             color: '#fff', font: { weight: 'bold', size: 10 },
                             formatter: (v, context) => {
                                 if (chartType === 'doughnut' || chartType === 'pie') { const sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0); return ((v / sum) * 100).toFixed(0) + '%'; }
-                                return v > 0 ? formatChartValue(v) : '';
+                                return v > 0 ? Math.round(v).toLocaleString('en-US') : '';
                             }
                         }
                     },
@@ -1395,13 +1454,15 @@
                         x: {
                             stacked: true,
                             beginAtZero: true,
+                            grid: { display: false },
                             ticks: {
+                                precision: 0,
                                 callback: function(value) {
-                                    return formatChartValue(value);
+                                    return Number.isInteger(value) ? value.toLocaleString('en-US') : '';
                                 }
                             }
                         },
-                        y: { stacked: true }
+                        y: { stacked: true, border: { display: false } }
                     }
                 }
             });
